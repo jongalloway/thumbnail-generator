@@ -1,0 +1,58 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build output (Vite, React, Vue)
+dist/
+build/
+.cache/
+.vite/
+vite.config.timestamp-*
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+
+# Optional: if using TypeScript
+*.tsbuildinfo
+
+# Optional: if using Storybook or similar tools
+storybook-static/
+
+# Optional: if using ESLint cache
+.eslintcache
+
+# Optional: if using Prettier cache
+.prettier-cache/
+
+# Optional: if using Parcel
+.parcel-cache/
+
+# Optional: if using SvelteKit or Astro (just in case)
+.svelte-kit/
+.astro/
+
+# GitHub Pages output (if using a build step)
+# If you're committing the built site to a gh-pages branch, keep this ignored.
+docs/.vitepress/dist/
