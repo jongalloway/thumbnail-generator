@@ -1,9 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from 'react'
 import './App.css'
 
-// Base path for GitHub Pages
-const BASE_PATH = import.meta.env.BASE_URL
-
 // Auto-discover logos using Vite's import.meta.glob
 // Any image file in public/logos/ will be automatically included
 const logoModules = import.meta.glob('/public/logos/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
@@ -90,7 +87,7 @@ function App() {
   const [selectedBackground, setSelectedBackground] = useState(discoveredBackgrounds[0] || null)
   const [logos] = useState(discoveredLogos)
   const [selectedLogos, setSelectedLogos] = useState([])
-  const [uploadedLogos, setUploadedLogos] = useState([])
+  const [, setUploadedLogos] = useState([])
   
   // State for notifications
   const [toast, setToast] = useState(null)
@@ -131,7 +128,7 @@ function App() {
     const file = event.target.files?.[0]
     if (!file) return
 
-    if (selectedLogos.length + uploadedLogos.length >= 3) {
+    if (selectedLogos.length >= 3) {
       showToast('Maximum 3 logos allowed', 'error')
       return
     }
@@ -153,7 +150,7 @@ function App() {
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-  }, [selectedLogos.length, uploadedLogos.length, showToast])
+  }, [selectedLogos.length, showToast])
 
   // Get text colors based on variant
   const textColor = useMemo(() => variant === 'dark' ? '#ffffff' : '#0f0f0f', [variant])
