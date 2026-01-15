@@ -375,7 +375,7 @@ function App() {
     const subtitleY = subtitleBottomBaselineY - Math.max(0, (subtitleLines.length - 1) * subtitleLineHeight)
 
     // Generate a unique ID prefix to avoid clipPath collisions when multiple SVGs are on the page
-    const uniqueId = `svg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const uniqueId = `svg-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 
     return `
       <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
@@ -523,10 +523,6 @@ function App() {
   const allSelectedLogos = [...selectedLogos]
 
   const [previewWidth, previewHeight] = parseResolution(resolution)
-
-  // Memoize the preview SVG to avoid unnecessary regeneration
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const previewSvg = useMemo(() => generateSvg(), [resolution, selectedBackground, title, subtitle, pill, selectedLogos, textColor, variant, pillBgColor])
 
   return (
     <div className="container">
@@ -717,7 +713,7 @@ function App() {
               ref={previewRef}
               className="preview"
               style={{ '--preview-aspect': `${previewWidth} / ${previewHeight}` }}
-              dangerouslySetInnerHTML={{ __html: previewSvg }}
+              dangerouslySetInnerHTML={{ __html: generateSvg() }}
             />
           </div>
         </section>
