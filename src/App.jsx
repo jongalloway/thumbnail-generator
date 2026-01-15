@@ -483,10 +483,11 @@ function App() {
       
       if (imageLayout === 'circle') {
         // Circle image layout - based on circle-image.svg example
-        // Positioned on the right side with drop shadow
-        const circleCenterX = width - (376 * scale)
-        const circleCenterY = height * 0.48
-        const circleRadius = 205 * scale
+        // Positioned in lower-right corner, bleeding off the edge
+        // Example has circle at 87.8% X, 62.8% Y with radius ~25.6% of width
+        const circleCenterX = width * 0.878
+        const circleCenterY = height * 0.628
+        const circleRadius = width * 0.256
         return `
           <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius}" fill="white" filter="url(#${uniqueId}-image-shadow)"/>
           <image href="${imgUrl}" x="${circleCenterX - circleRadius}" y="${circleCenterY - circleRadius}" width="${circleRadius * 2}" height="${circleRadius * 2}" clip-path="url(#${uniqueId}-circle-clip)" preserveAspectRatio="xMidYMid slice"/>
@@ -528,7 +529,7 @@ function App() {
           </filter>
           ${imageLayout === 'circle' && uploadedImage ? `
             <clipPath id="${uniqueId}-circle-clip">
-              <circle cx="${width - (376 * scale)}" cy="${height * 0.48}" r="${205 * scale}"/>
+              <circle cx="${width * 0.878}" cy="${height * 0.628}" r="${width * 0.256}"/>
             </clipPath>
           ` : ''}
           ${imageLayout === 'split' && uploadedImage ? `
