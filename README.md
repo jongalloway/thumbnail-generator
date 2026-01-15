@@ -8,10 +8,10 @@ A static, client-side thumbnail generator for blog posts. Create consistent blog
 
 - 🎨 Multiple background options (dark, light, and colored gradients)
 - ✏️ Customizable title, subtitle, and pill/badge text
-- 🏷️ Support for 1-3 logos displayed in white circles
+- 🏷️ Support for 1-3 logos displayed in white circles (stacked layout)
 - 📤 Upload your own logos
-- 💾 Export as PNG or SVG
-- 📱 Multiple resolution options (Social/OG, HD, 720p)
+- 💾 Export as JPG (default), PNG, WEBP, or SVG
+- 📱 Multiple resolution options (default: 1920×1080)
 - ♿ Accessible UI with keyboard navigation
 - 🚀 Runs entirely in the browser - no server required
 
@@ -43,13 +43,18 @@ The site is configured to deploy to GitHub Pages. Simply push to the main branch
 
 ## Adding New Backgrounds
 
-To add a new background, simply add your background image (SVG, PNG, or JPG) to `public/backgrounds/`. The app automatically discovers all images in this directory - no manifest or code changes required!
+To add a new background, add an image (SVG, PNG, JPG/JPEG, GIF, or WEBP) to `public/backgrounds/`. The app automatically discovers all images in this directory - no manifest or code changes required!
 
 **Tip:** Include "light" in the filename (e.g., `my-light-background.svg`) to automatically set the text variant to dark text for light backgrounds.
 
 ## Adding New Logos
 
-To add a new logo, simply add your logo image (SVG, PNG, or JPG) to `public/logos/`. The app automatically discovers all images in this directory - no manifest or code changes required!
+To add a new logo, add an image (SVG, PNG, JPG/JPEG, GIF, or WEBP) to `public/logos/`. The app automatically discovers all images in this directory - no manifest or code changes required!
+
+**Logo rendering notes:**
+
+- Up to 3 logos can be selected.
+- Logos are clipped inside a circular area and sized to avoid cutting off square-ish logos.
 
 ## Additional Assets
 
@@ -58,6 +63,7 @@ Additional logos (Azure, Copilot, Visual Studio, NuGet, .NET) are available in t
 ## Example Templates
 
 The `examples/` directory contains reference SVG templates showing different layout styles:
+
 - `title-and-pill.svg` - Simple pill badge with title
 - `one-logo.svg`, `two-logos.svg`, `three-logos.svg` - Layouts with logo circles
 - `circle-image.svg` - Layout with circular image placeholder
@@ -66,7 +72,7 @@ The `examples/` directory contains reference SVG templates showing different lay
 
 ## Project Structure
 
-```
+```text
 public/
   backgrounds/        # Background images (auto-discovered)
   logos/              # Logo images (auto-discovered)
@@ -92,8 +98,21 @@ vite.config.js        # Vite configuration
 
 ## Export Options
 
-- **PNG** - Best for social sharing (Twitter, LinkedIn, etc.)
+- **JPG (default)** - Small file sizes; good for most sharing scenarios
+- **PNG** - Lossless; good when you need crisp edges or transparency (if you add it later)
+- **WEBP** - Usually smaller than JPG/PNG; great when supported by your target platform
 - **SVG** - Best for high-quality scaling and further editing
+
+**Notes:**
+
+- Raster export inlines referenced images (backgrounds/logos) before rendering, so exported files consistently include all assets.
+- Backgrounds are stretched to fill the export resolution (no letterboxing).
+
+## Layout Behavior
+
+- When logos are present, the title/subtitle wrap to the left side to avoid colliding with the logo stack.
+- The subtitle is bottom-aligned with a consistent margin.
+- The pill/badge sizing is measured using the actual font metrics to better fit the text.
 
 ## Accessibility
 
