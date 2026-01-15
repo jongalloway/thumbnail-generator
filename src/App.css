@@ -9,6 +9,25 @@
   padding: var(--spacing-md);
 }
 
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  padding: 8px 12px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-150%);
+  transition: transform 0.15s;
+  z-index: 2000;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 /* Header */
 .header {
   text-align: center;
@@ -211,13 +230,15 @@ input[type="text"]::placeholder {
   margin-top: var(--spacing-md);
 }
 
-.upload-label {
+.upload-row {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+}
+
+.upload-label-text {
   font-size: 0.9rem;
   color: var(--color-text-muted);
-  cursor: pointer;
 }
 
 .upload-button {
@@ -227,10 +248,16 @@ input[type="text"]::placeholder {
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   transition: background 0.15s;
+  cursor: pointer;
 }
 
-.upload-label:hover .upload-button {
+.upload-button:hover {
   background: var(--color-border);
+}
+
+.upload-button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 /* Buttons */
@@ -313,6 +340,60 @@ input[type="text"]::placeholder {
   height: 100%;
 }
 
+.preview-help {
+  margin-top: var(--spacing-md);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.preview-help-title {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.preview-help-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--color-text-muted);
+}
+
+.preview-help-list li {
+  margin: 0.25rem 0;
+}
+
+.preview-help-links {
+  margin: var(--spacing-md) 0 0;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.github-link:hover {
+  text-decoration: underline;
+}
+
+.github-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.github-link:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* Footer */
 .footer {
   margin-top: var(--spacing-xl);
@@ -331,6 +412,7 @@ input[type="text"]::placeholder {
 .footer a:hover {
   text-decoration: underline;
 }
+
 
 /* Empty state */
 .empty-state {

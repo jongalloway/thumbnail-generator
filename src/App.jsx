@@ -497,42 +497,42 @@ function App() {
         
         <!-- Image Layout -->
         ${(() => {
-      if (imageLayout === 'none' || !uploadedImage) return ''
-      const imgUrl = uploadedImage.dataUrl
-      
-      if (imageLayout === 'circle') {
-        // Circle image layout - positioned in lower-right corner, bleeding off the edge
-        const circleCenterX = width * CIRCLE_CENTER_X_RATIO
-        const circleCenterY = height * CIRCLE_CENTER_Y_RATIO
-        const circleRadius = width * CIRCLE_RADIUS_RATIO
-        return `
+        if (imageLayout === 'none' || !uploadedImage) return ''
+        const imgUrl = uploadedImage.dataUrl
+
+        if (imageLayout === 'circle') {
+          // Circle image layout - positioned in lower-right corner, bleeding off the edge
+          const circleCenterX = width * CIRCLE_CENTER_X_RATIO
+          const circleCenterY = height * CIRCLE_CENTER_Y_RATIO
+          const circleRadius = width * CIRCLE_RADIUS_RATIO
+          return `
           <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius}" fill="white" filter="url(#${uniqueId}-image-shadow)"/>
           <image href="${imgUrl}" x="${circleCenterX - circleRadius}" y="${circleCenterY - circleRadius}" width="${circleRadius * 2}" height="${circleRadius * 2}" clip-path="url(#${uniqueId}-circle-clip)" preserveAspectRatio="xMidYMid slice"/>
         `
-      }
-      
-      if (imageLayout === 'split') {
-        // Split image layout - diagonal clip from top-right to bottom
-        const splitBottomX = SPLIT_CLIP_BOTTOM_X_BASE * scale
-        return `
+        }
+
+        if (imageLayout === 'split') {
+          // Split image layout - diagonal clip from top-right to bottom
+          const splitBottomX = SPLIT_CLIP_BOTTOM_X_BASE * scale
+          return `
           <image href="${imgUrl}" x="${splitBottomX}" y="0" width="${width - splitBottomX}" height="${height}" clip-path="url(#${uniqueId}-split-clip)" preserveAspectRatio="xMidYMid slice"/>
         `
-      }
-      
-      if (imageLayout === 'overlay') {
-        // Overlay image layout - rectangular image on the right side with drop shadow
-        const rectX = OVERLAY_RECT_X_BASE * scale
-        const rectY = OVERLAY_RECT_Y_BASE * scale
-        const rectWidth = OVERLAY_RECT_WIDTH_BASE * scale
-        const rectHeight = OVERLAY_RECT_HEIGHT_BASE * scale
-        return `
+        }
+
+        if (imageLayout === 'overlay') {
+          // Overlay image layout - rectangular image on the right side with drop shadow
+          const rectX = OVERLAY_RECT_X_BASE * scale
+          const rectY = OVERLAY_RECT_Y_BASE * scale
+          const rectWidth = OVERLAY_RECT_WIDTH_BASE * scale
+          const rectHeight = OVERLAY_RECT_HEIGHT_BASE * scale
+          return `
           <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="white" filter="url(#${uniqueId}-image-shadow)"/>
           <image href="${imgUrl}" x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" preserveAspectRatio="xMidYMid slice"/>
         `
-      }
-      
-      return ''
-    })()}
+        }
+
+        return ''
+      })()}
         
         <!-- Filters and clip paths -->
         <defs>
@@ -606,7 +606,7 @@ function App() {
       canvas.toBlob((blob) => {
         // Revoke the object URL after the canvas has been fully processed
         URL.revokeObjectURL(url)
-        
+
         if (!blob) {
           showToast('Export failed. Try SVG export instead.', 'error')
           return
@@ -645,13 +645,18 @@ function App() {
 
   return (
     <div className="container">
+      <nav aria-label="Skip links">
+        <a className="skip-link" href="#thumbnail-controls">Skip to controls</a>
+        <a className="skip-link" href="#thumbnail-preview">Skip to preview</a>
+      </nav>
+
       <header className="header">
         <h1>Blog Thumbnail Generator</h1>
         <p className="subtitle">Create consistent blog thumbnails for sharing</p>
       </header>
 
       <main className="editor">
-        <section className="controls" aria-label="Thumbnail settings">
+        <section id="thumbnail-controls" className="controls" aria-label="Thumbnail settings">
           {/* Background Selection */}
           <div className="control-group">
             <label htmlFor="background-select">Background</label>
@@ -771,17 +776,26 @@ function App() {
               </div>
             </div>
             <div className="logo-upload">
-              <label className="upload-label">
-                Or upload your own:
+              <div className="upload-row">
+                <span id="logo-upload-desc" className="upload-label-text">Or upload your own:</span>
                 <input
+                  id="logo-upload-input"
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileUpload}
                   accept="image/*"
                   className="visually-hidden"
                 />
-                <span className="upload-button">Choose File</span>
-              </label>
+                <button
+                  type="button"
+                  className="upload-button"
+                  aria-describedby="logo-upload-desc"
+                  aria-controls="logo-upload-input"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Choose File
+                </button>
+              </div>
             </div>
           </div>
 
@@ -801,38 +815,47 @@ function App() {
               <option value="overlay">Overlay</option>
             </select>
             <small id="image-layout-desc" className="helper-text">Choose how the image will be displayed</small>
-            
+
             {imageLayout !== 'none' && (
               <div className="image-upload" style={{ marginTop: 'var(--spacing-sm)' }}>
-                <label className="upload-label">
-                  Upload image:
+                <div className="upload-row">
+                  <span id="image-upload-desc" className="upload-label-text">Upload image:</span>
                   <input
+                    id="image-upload-input"
                     type="file"
                     ref={imageFileInputRef}
                     onChange={handleImageUpload}
                     accept="image/*"
                     className="visually-hidden"
                   />
-                  <span className="upload-button">Choose File</span>
-                </label>
+                  <button
+                    type="button"
+                    className="upload-button"
+                    aria-describedby="image-upload-desc"
+                    aria-controls="image-upload-input"
+                    onClick={() => imageFileInputRef.current?.click()}
+                  >
+                    Choose File
+                  </button>
+                </div>
                 {uploadedImage && (
                   <div className="image-preview" style={{ marginTop: 'var(--spacing-sm)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                    <img 
-                      src={uploadedImage.dataUrl} 
-                      alt="Uploaded" 
+                    <img
+                      src={uploadedImage.dataUrl}
+                      alt="Uploaded"
                       style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }}
                     />
                     <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>{uploadedImage.name}</span>
                     <button
                       type="button"
                       onClick={() => setUploadedImage(null)}
-                      style={{ 
-                        background: '#dc3545', 
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '50%', 
-                        width: '20px', 
-                        height: '20px', 
+                      style={{
+                        background: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '20px',
+                        height: '20px',
                         cursor: 'pointer',
                         fontSize: '12px',
                         display: 'flex',
@@ -889,7 +912,7 @@ function App() {
         </section>
 
         {/* Preview Section */}
-        <section className="preview-section" aria-label="Thumbnail preview">
+        <section id="thumbnail-preview" className="preview-section" aria-label="Thumbnail preview">
           <h2 className="visually-hidden">Preview</h2>
           <div className="preview-container">
             <div
@@ -899,11 +922,71 @@ function App() {
               dangerouslySetInnerHTML={{ __html: generateSvg() }}
             />
           </div>
+
+          <aside className="preview-help" aria-label="Instructions">
+            <h3 className="preview-help-title">Quick tips</h3>
+            <ul className="preview-help-list">
+              <li>Pick a background and add title/subtitle/pill text.</li>
+              <li>Select up to 3 logos (or upload your own).</li>
+              <li>Choose an export resolution and format, then export.</li>
+            </ul>
+
+            <p className="preview-help-links">
+              <a
+                className="github-link"
+                href="https://github.com/jongalloway/thumbnail-generator"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="More information or file an issue on GitHub"
+                title="More information or file an issue on GitHub"
+              >
+                <svg
+                  className="github-icon"
+                  viewBox="0 0 16 16"
+                  width="16"
+                  height="16"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+                  />
+                </svg>
+                <span className="github-label">More info / file an issue</span>
+              </a>
+            </p>
+          </aside>
         </section>
       </main>
 
       <footer className="footer">
-        <p>Blog Thumbnail Generator • <a href="https://github.com/jongalloway/thumbnail-generator">GitHub</a></p>
+        <p>
+          Blog Thumbnail Generator •{' '}
+          <a
+            className="github-link"
+            href="https://github.com/jongalloway/thumbnail-generator"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="View source on GitHub"
+            title="View source on GitHub"
+          >
+            <svg
+              className="github-icon"
+              viewBox="0 0 16 16"
+              width="16"
+              height="16"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                fill="currentColor"
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+              />
+            </svg>
+            <span className="github-label">GitHub</span>
+          </a>
+        </p>
       </footer>
 
       {/* Toast Notification */}
