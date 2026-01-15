@@ -488,15 +488,7 @@ function App() {
         const circleCenterY = height * 0.48
         const circleRadius = 205 * scale
         return `
-          <defs>
-            <clipPath id="${uniqueId}-circle-clip">
-              <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius}"/>
-            </clipPath>
-            <filter id="${uniqueId}-circle-shadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="-6" dy="-6" stdDeviation="25" flood-opacity="0.3"/>
-            </filter>
-          </defs>
-          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius}" fill="white" filter="url(#${uniqueId}-circle-shadow)"/>
+          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius}" fill="white" filter="url(#${uniqueId}-image-shadow)"/>
           <image href="${imgUrl}" x="${circleCenterX - circleRadius}" y="${circleCenterY - circleRadius}" width="${circleRadius * 2}" height="${circleRadius * 2}" clip-path="url(#${uniqueId}-circle-clip)" preserveAspectRatio="xMidYMid slice"/>
         `
       }
@@ -504,14 +496,8 @@ function App() {
       if (imageLayout === 'split') {
         // Split image layout - diagonal clip from top-right to bottom
         // Based on split-image.svg: path from (1345, 0) to (1090, 1080) to (1920, 1080) to (1920, 0)
-        const splitTopX = 1345 * scale
         const splitBottomX = 1090 * scale
         return `
-          <defs>
-            <clipPath id="${uniqueId}-split-clip">
-              <path d="M ${splitTopX},0 L ${splitBottomX},${height} L ${width},${height} L ${width},0 Z"/>
-            </clipPath>
-          </defs>
           <image href="${imgUrl}" x="${splitBottomX}" y="0" width="${width - splitBottomX}" height="${height}" clip-path="url(#${uniqueId}-split-clip)" preserveAspectRatio="xMidYMid slice"/>
         `
       }
@@ -524,12 +510,7 @@ function App() {
         const rectWidth = 950 * scale
         const rectHeight = 861 * scale
         return `
-          <defs>
-            <filter id="${uniqueId}-overlay-shadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="-6" dy="-6" stdDeviation="25" flood-opacity="0.3"/>
-            </filter>
-          </defs>
-          <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="white" filter="url(#${uniqueId}-overlay-shadow)"/>
+          <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="white" filter="url(#${uniqueId}-image-shadow)"/>
           <image href="${imgUrl}" x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" preserveAspectRatio="xMidYMid slice"/>
         `
       }
@@ -537,11 +518,24 @@ function App() {
       return ''
     })()}
         
-        <!-- Shadow filter for logos -->
+        <!-- Filters and clip paths -->
         <defs>
           <filter id="${uniqueId}-shadow" x="-50%" y="-50%" width="200%" height="200%">
             <feDropShadow dx="0" dy="2" stdDeviation="8" flood-opacity="0.15"/>
           </filter>
+          <filter id="${uniqueId}-image-shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="-6" dy="-6" stdDeviation="25" flood-opacity="0.3"/>
+          </filter>
+          ${imageLayout === 'circle' && uploadedImage ? `
+            <clipPath id="${uniqueId}-circle-clip">
+              <circle cx="${width - (376 * scale)}" cy="${height * 0.48}" r="${205 * scale}"/>
+            </clipPath>
+          ` : ''}
+          ${imageLayout === 'split' && uploadedImage ? `
+            <clipPath id="${uniqueId}-split-clip">
+              <path d="M ${1345 * scale},0 L ${1090 * scale},${height} L ${width},${height} L ${width},0 Z"/>
+            </clipPath>
+          ` : ''}
         </defs>
       </svg>
     `
@@ -773,12 +767,12 @@ function App() {
                 <span className="upload-button">Choose File</span>
               </label>
             </div>
-            <small className="helper-text">Logo layouts and image layouts are mutually exclusive</small>
           </div>
 
           {/* Image Layout Selection */}
           <div className="control-group">
             <label htmlFor="image-layout-select">Image Layout (optional)</label>
+            <small className="helper-text" style={{ marginBottom: 'var(--spacing-xs)' }}>Note: Selecting an image layout will clear any selected logos</small>
             <select
               id="image-layout-select"
               value={imageLayout}
