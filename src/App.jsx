@@ -44,6 +44,22 @@ const discoveredBackgrounds = Object.entries(backgroundModules).map(([path, url]
   }
 })
 
+// Image layout constants - derived from example SVG files
+// Circle layout (from circle-image.svg): positioned in lower-right corner with bleed effect
+const CIRCLE_CENTER_X_RATIO = 0.878  // 87.8% of width
+const CIRCLE_CENTER_Y_RATIO = 0.628  // 62.8% of height
+const CIRCLE_RADIUS_RATIO = 0.256    // 25.6% of width
+
+// Split layout (from split-image.svg): diagonal clip from top-right to bottom
+const SPLIT_CLIP_TOP_X_BASE = 1345   // Top X coordinate at 1920 width
+const SPLIT_CLIP_BOTTOM_X_BASE = 1090 // Bottom X coordinate at 1920 width
+
+// Overlay layout (from overlay-image.svg): rectangular image on right side
+const OVERLAY_RECT_X_BASE = 1239     // X position at 1920 width
+const OVERLAY_RECT_Y_BASE = 110      // Y position at 1080 height
+const OVERLAY_RECT_WIDTH_BASE = 950  // Width at 1920 width
+const OVERLAY_RECT_HEIGHT_BASE = 861 // Height at 1080 height
+
 // Helper function to escape XML special characters
 function escapeXml(text) {
   return text
@@ -308,6 +324,9 @@ function App() {
       // Clear logos when selecting an image layout (mutually exclusive)
       setSelectedLogos([])
       setUploadedLogos([])
+    } else {
+      // Clear uploaded image when no image layout is selected
+      setUploadedImage(null)
     }
   }, [])
 
@@ -482,12 +501,10 @@ function App() {
       const imgUrl = uploadedImage.dataUrl
       
       if (imageLayout === 'circle') {
-        // Circle image layout - based on circle-image.svg example
-        // Positioned in lower-right corner, bleeding off the edge
-        // Example has circle at 87.8% X, 62.8% Y with radius ~25.6% of width
-        const circleCenterX = width * 0.878
-        const circleCenterY = height * 0.628
-        const circleRadius = width * 0.256
+        // Circle image layout - positioned in lower-right corner, bleeding off the edge
+        const circleCenterX = width * CIRCLE_CENTER_X_RATIO
+        const circleCenterY = height * CIRCLE_CENTER_Y_RATIO
+        const circleRadius = width * CIRCLE_RADIUS_RATIO
         return `
           <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius}" fill="white" filter="url(#${uniqueId}-image-shadow)"/>
           <image href="${imgUrl}" x="${circleCenterX - circleRadius}" y="${circleCenterY - circleRadius}" width="${circleRadius * 2}" height="${circleRadius * 2}" clip-path="url(#${uniqueId}-circle-clip)" preserveAspectRatio="xMidYMid slice"/>
@@ -496,8 +513,7 @@ function App() {
       
       if (imageLayout === 'split') {
         // Split image layout - diagonal clip from top-right to bottom
-        // Based on split-image.svg: path from (1345, 0) to (1090, 1080) to (1920, 1080) to (1920, 0)
-        const splitBottomX = 1090 * scale
+        const splitBottomX = SPLIT_CLIP_BOTTOM_X_BASE * scale
         return `
           <image href="${imgUrl}" x="${splitBottomX}" y="0" width="${width - splitBottomX}" height="${height}" clip-path="url(#${uniqueId}-split-clip)" preserveAspectRatio="xMidYMid slice"/>
         `
@@ -505,11 +521,10 @@ function App() {
       
       if (imageLayout === 'overlay') {
         // Overlay image layout - rectangular image on the right side with drop shadow
-        // Based on overlay-image.svg: rect at x=1239.0625, y=109.53125, width=950, height=860.9375
-        const rectX = 1239 * scale
-        const rectY = 110 * scale
-        const rectWidth = 950 * scale
-        const rectHeight = 861 * scale
+        const rectX = OVERLAY_RECT_X_BASE * scale
+        const rectY = OVERLAY_RECT_Y_BASE * scale
+        const rectWidth = OVERLAY_RECT_WIDTH_BASE * scale
+        const rectHeight = OVERLAY_RECT_HEIGHT_BASE * scale
         return `
           <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="white" filter="url(#${uniqueId}-image-shadow)"/>
           <image href="${imgUrl}" x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" preserveAspectRatio="xMidYMid slice"/>
@@ -529,12 +544,12 @@ function App() {
           </filter>
           ${imageLayout === 'circle' && uploadedImage ? `
             <clipPath id="${uniqueId}-circle-clip">
-              <circle cx="${width * 0.878}" cy="${height * 0.628}" r="${width * 0.256}"/>
+              <circle cx="${width * CIRCLE_CENTER_X_RATIO}" cy="${height * CIRCLE_CENTER_Y_RATIO}" r="${width * CIRCLE_RADIUS_RATIO}"/>
             </clipPath>
           ` : ''}
           ${imageLayout === 'split' && uploadedImage ? `
             <clipPath id="${uniqueId}-split-clip">
-              <path d="M ${1345 * scale},0 L ${1090 * scale},${height} L ${width},${height} L ${width},0 Z"/>
+              <path d="M ${SPLIT_CLIP_TOP_X_BASE * scale},0 L ${SPLIT_CLIP_BOTTOM_X_BASE * scale},${height} L ${width},${height} L ${width},0 Z"/>
             </clipPath>
           ` : ''}
         </defs>
