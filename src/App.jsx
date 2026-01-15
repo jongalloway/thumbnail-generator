@@ -480,12 +480,7 @@ function App() {
         img.src = url
       })
 
-      if (typeof img.decode === 'function') {
-        img.decode().catch(() => {
-          // decode() isn't supported everywhere; onload is usually enough.
-        })
-      }
-
+      // Image is loaded and ready to draw
       ctx.drawImage(img, 0, 0, width, height)
 
       // Convert to image and download
@@ -530,7 +525,8 @@ function App() {
   const [previewWidth, previewHeight] = parseResolution(resolution)
 
   // Memoize the preview SVG to avoid unnecessary regeneration
-  const previewSvg = useMemo(() => generateSvg(), [generateSvg])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const previewSvg = useMemo(() => generateSvg(), [resolution, selectedBackground, title, subtitle, pill, selectedLogos, textColor, variant, pillBgColor])
 
   return (
     <div className="container">
@@ -705,7 +701,7 @@ function App() {
           {/* Export Buttons */}
           <div className="export-actions">
             <button type="button" className="btn btn-primary" onClick={exportRaster}>
-              Export as {exportFormat.toUpperCase()}
+              Export as {(exportFormat || 'JPG').toUpperCase()}
             </button>
             <button type="button" className="btn btn-secondary" onClick={exportSvg}>
               Export as SVG
