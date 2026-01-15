@@ -43,50 +43,35 @@ The site is configured to deploy to GitHub Pages. Simply push to the main branch
 
 ## Adding New Backgrounds
 
-To add a new background:
+To add a new background, simply add your background image (SVG, PNG, or JPG) to `public/backgrounds/`. The app automatically discovers all images in this directory - no manifest or code changes required!
 
-1. Add your background image (SVG recommended) to `public/backgrounds/`
-2. Update `public/backgrounds/manifest.json` to include your new background:
-
-```json
-{
-  "id": "my-background",
-  "name": "My Background",
-  "file": "my-background.svg",
-  "variant": "dark"  // or "light"
-}
-```
-
-No code changes required!
+**Tip:** Include "light" in the filename (e.g., `my-light-background.svg`) to automatically set the text variant to dark text for light backgrounds.
 
 ## Adding New Logos
 
-To add a new logo:
-
-1. Add your logo image (SVG, PNG, or JPG) to `public/logos/`
-2. Update `public/logos/manifest.json` to include your new logo:
-
-```json
-{
-  "id": "my-logo",
-  "name": "My Logo",
-  "file": "my-logo.svg"
-}
-```
-
-No code changes required!
+To add a new logo, simply add your logo image (SVG, PNG, or JPG) to `public/logos/`. The app automatically discovers all images in this directory - no manifest or code changes required!
 
 ## Additional Assets
 
-Additional logos (Azure, Copilot, Visual Studio, NuGet, .NET) and example thumbnails are available in the `assets` branch. You can merge these assets into your deployment or copy individual files as needed.
+Additional logos (Azure, Copilot, Visual Studio, NuGet, .NET) are available in the `assets` branch. You can copy individual files to your `public/logos/` directory as needed.
+
+## Example Templates
+
+The `examples/` directory contains reference SVG templates showing different layout styles:
+- `title-and-pill.svg` - Simple pill badge with title
+- `one-logo.svg`, `two-logos.svg`, `three-logos.svg` - Layouts with logo circles
+- `circle-image.svg` - Layout with circular image placeholder
+- `split-image.svg` - Split layout with image on right side
+- `overlay-image.svg` - Overlay layout style
 
 ## Project Structure
 
 ```
 public/
-  backgrounds/        # Background images and manifest
-  logos/              # Logo images and manifest
-  templates/          # SVG templates (future use)
+  backgrounds/        # Background images (auto-discovered)
+  logos/              # Logo images (auto-discovered)
+
+examples/             # Reference SVG templates
 
 src/
   App.jsx             # Main React component
