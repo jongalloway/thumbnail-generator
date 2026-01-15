@@ -299,7 +299,7 @@ input[type="text"]::placeholder {
 
 .preview {
   width: 100%;
-  aspect-ratio: 1200 / 630;
+  aspect-ratio: var(--preview-aspect, 1200 / 630);
   background: #1a1a2e;
   border-radius: var(--radius-sm);
   overflow: hidden;
