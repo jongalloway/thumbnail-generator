@@ -1,0 +1,34 @@
+{
+  "backgrounds": [
+    {
+      "id": "dark-gradient",
+      "name": "Dark Gradient",
+      "file": "dark-gradient.svg",
+      "variant": "dark"
+    },
+    {
+      "id": "light-gradient",
+      "name": "Light Gradient",
+      "file": "light-gradient.svg",
+      "variant": "light"
+    },
+    {
+      "id": "blue-gradient",
+      "name": "Blue Gradient",
+      "file": "blue-gradient.svg",
+      "variant": "dark"
+    },
+    {
+      "id": "purple-gradient",
+      "name": "Purple Gradient",
+      "file": "purple-gradient.svg",
+      "variant": "dark"
+    },
+    {
+      "id": "green-gradient",
+      "name": "Green Gradient",
+      "file": "green-gradient.svg",
+      "variant": "dark"
+    }
+  ]
+}
