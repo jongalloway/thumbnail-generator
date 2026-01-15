@@ -130,6 +130,9 @@ function parseResolution(resolution) {
   return [width, height]
 }
 
+// Constants
+const FETCH_TIMEOUT_MS = 10000 // 10 seconds
+
 async function inlineSvgImages(svgString) {
   if (typeof window === 'undefined' || !svgString) return svgString
 
@@ -159,7 +162,7 @@ async function inlineSvgImages(svgString) {
 
     // Add timeout to prevent hanging indefinitely
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
 
     try {
       const response = await fetch(absoluteUrl, { mode: 'cors', signal: controller.signal })
@@ -697,7 +700,7 @@ function App() {
           {/* Export Buttons */}
           <div className="export-actions">
             <button type="button" className="btn btn-primary" onClick={exportRaster}>
-              Export as {(exportFormat || 'JPG').toUpperCase()}
+              Export as {(exportFormat || 'jpg').toUpperCase()}
             </button>
             <button type="button" className="btn btn-secondary" onClick={exportSvg}>
               Export as SVG
