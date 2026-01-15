@@ -204,11 +204,16 @@ function App() {
   const [selectedLogos, setSelectedLogos] = useState([])
   const [, setUploadedLogos] = useState([])
 
+  // State for image layouts (mutually exclusive with logos)
+  const [imageLayout, setImageLayout] = useState('none') // 'none', 'circle', 'split', 'overlay'
+  const [uploadedImage, setUploadedImage] = useState(null) // { dataUrl, name }
+
   // State for notifications
   const [toast, setToast] = useState(null)
 
   // Ref for file input
   const fileInputRef = useRef(null)
+  const imageFileInputRef = useRef(null)
   const previewRef = useRef(null)
 
   // Show toast notification
@@ -217,7 +222,7 @@ function App() {
     setTimeout(() => setToast(null), 3000)
   }, [])
 
-  // Handle logo selection
+  // Handle logo selection - clears image layout (mutually exclusive)
   const toggleLogo = useCallback((logo) => {
     setSelectedLogos(prev => {
       const isSelected = prev.some(l => l.id === logo.id)
@@ -228,6 +233,9 @@ function App() {
         showToast('Maximum 3 logos allowed', 'error')
         return prev
       }
+      // Clear image layout when adding a logo (mutually exclusive)
+      setImageLayout('none')
+      setUploadedImage(null)
       return [...prev, logo]
     })
   }, [showToast])
@@ -238,7 +246,7 @@ function App() {
     setUploadedLogos(prev => prev.filter(l => l.id !== logoId))
   }, [])
 
-  // Handle file upload
+  // Handle file upload (for logos) - clears image layout (mutually exclusive)
   const handleFileUpload = useCallback((event) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -258,6 +266,9 @@ function App() {
       }
       setUploadedLogos(prev => [...prev, newLogo])
       setSelectedLogos(prev => [...prev, newLogo])
+      // Clear image layout when adding a logo (mutually exclusive)
+      setImageLayout('none')
+      setUploadedImage(null)
     }
     reader.readAsDataURL(file)
 
@@ -266,6 +277,39 @@ function App() {
       fileInputRef.current.value = ''
     }
   }, [selectedLogos.length, showToast])
+
+  // Handle image upload for image layouts - clears logos (mutually exclusive)
+  const handleImageUpload = useCallback((event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setUploadedImage({
+        dataUrl: e.target.result,
+        name: file.name
+      })
+      // Clear logos when uploading an image (mutually exclusive)
+      setSelectedLogos([])
+      setUploadedLogos([])
+    }
+    reader.readAsDataURL(file)
+
+    // Reset file input
+    if (imageFileInputRef.current) {
+      imageFileInputRef.current.value = ''
+    }
+  }, [])
+
+  // Handle image layout change - clears logos if a layout is selected (mutually exclusive)
+  const handleImageLayoutChange = useCallback((layout) => {
+    setImageLayout(layout)
+    if (layout !== 'none') {
+      // Clear logos when selecting an image layout (mutually exclusive)
+      setSelectedLogos([])
+      setUploadedLogos([])
+    }
+  }, [])
 
   // Get text colors based on variant
   const textColor = useMemo(() => variant === 'dark' ? '#ffffff' : '#0f0f0f', [variant])
@@ -364,8 +408,9 @@ function App() {
       logoBaseX = Math.min(logoBaseX, maxBaseX)
     }
 
-    // Constrain text width to left half when logos exist.
-    const textRightBoundary = selectedLogos.length > 0 ? (width / 2) : (width - edgeMarginX)
+    // Constrain text width to left half when logos or image layouts exist.
+    const hasRightSideContent = selectedLogos.length > 0 || (imageLayout !== 'none' && uploadedImage)
+    const textRightBoundary = hasRightSideContent ? (width / 2) : (width - edgeMarginX)
     const textMaxWidth = Math.max(0, textRightBoundary - titleX)
 
     const titleLines = wrapTextToWidth(title, textMaxWidth, textCtx, titleFont)
@@ -431,6 +476,67 @@ function App() {
           `
     }).join('')}
         
+        <!-- Image Layout -->
+        ${(() => {
+      if (imageLayout === 'none' || !uploadedImage) return ''
+      const imgUrl = uploadedImage.dataUrl
+      
+      if (imageLayout === 'circle') {
+        // Circle image layout - based on circle-image.svg example
+        // Positioned on the right side with drop shadow
+        const circleCenterX = width - (376 * scale)
+        const circleCenterY = height * 0.48
+        const circleRadius = 205 * scale
+        return `
+          <defs>
+            <clipPath id="${uniqueId}-circle-clip">
+              <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius}"/>
+            </clipPath>
+            <filter id="${uniqueId}-circle-shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="-6" dy="-6" stdDeviation="25" flood-opacity="0.3"/>
+            </filter>
+          </defs>
+          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius}" fill="white" filter="url(#${uniqueId}-circle-shadow)"/>
+          <image href="${imgUrl}" x="${circleCenterX - circleRadius}" y="${circleCenterY - circleRadius}" width="${circleRadius * 2}" height="${circleRadius * 2}" clip-path="url(#${uniqueId}-circle-clip)" preserveAspectRatio="xMidYMid slice"/>
+        `
+      }
+      
+      if (imageLayout === 'split') {
+        // Split image layout - diagonal clip from top-right to bottom
+        // Based on split-image.svg: path from (1345, 0) to (1090, 1080) to (1920, 1080) to (1920, 0)
+        const splitTopX = 1345 * scale
+        const splitBottomX = 1090 * scale
+        return `
+          <defs>
+            <clipPath id="${uniqueId}-split-clip">
+              <path d="M ${splitTopX},0 L ${splitBottomX},${height} L ${width},${height} L ${width},0 Z"/>
+            </clipPath>
+          </defs>
+          <image href="${imgUrl}" x="${splitBottomX}" y="0" width="${width - splitBottomX}" height="${height}" clip-path="url(#${uniqueId}-split-clip)" preserveAspectRatio="xMidYMid slice"/>
+        `
+      }
+      
+      if (imageLayout === 'overlay') {
+        // Overlay image layout - rectangular image on the right side with drop shadow
+        // Based on overlay-image.svg: rect at x=1239.0625, y=109.53125, width=950, height=860.9375
+        const rectX = 1239 * scale
+        const rectY = 110 * scale
+        const rectWidth = 950 * scale
+        const rectHeight = 861 * scale
+        return `
+          <defs>
+            <filter id="${uniqueId}-overlay-shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="-6" dy="-6" stdDeviation="25" flood-opacity="0.3"/>
+            </filter>
+          </defs>
+          <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="white" filter="url(#${uniqueId}-overlay-shadow)"/>
+          <image href="${imgUrl}" x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" preserveAspectRatio="xMidYMid slice"/>
+        `
+      }
+      
+      return ''
+    })()}
+        
         <!-- Shadow filter for logos -->
         <defs>
           <filter id="${uniqueId}-shadow" x="-50%" y="-50%" width="200%" height="200%">
@@ -439,7 +545,7 @@ function App() {
         </defs>
       </svg>
     `
-  }, [resolution, selectedBackground, title, subtitle, pill, selectedLogos, textColor, variant, pillBgColor])
+  }, [resolution, selectedBackground, title, subtitle, pill, selectedLogos, textColor, variant, pillBgColor, imageLayout, uploadedImage])
 
   // Export as raster (JPG/PNG/WEBP)
   const exportRaster = useCallback(async () => {
@@ -667,6 +773,70 @@ function App() {
                 <span className="upload-button">Choose File</span>
               </label>
             </div>
+            <small className="helper-text">Logo layouts and image layouts are mutually exclusive</small>
+          </div>
+
+          {/* Image Layout Selection */}
+          <div className="control-group">
+            <label htmlFor="image-layout-select">Image Layout (optional)</label>
+            <select
+              id="image-layout-select"
+              value={imageLayout}
+              onChange={(e) => handleImageLayoutChange(e.target.value)}
+              aria-describedby="image-layout-desc"
+            >
+              <option value="none">None</option>
+              <option value="circle">Circle</option>
+              <option value="split">Split</option>
+              <option value="overlay">Overlay</option>
+            </select>
+            <small id="image-layout-desc" className="helper-text">Choose how the image will be displayed</small>
+            
+            {imageLayout !== 'none' && (
+              <div className="image-upload" style={{ marginTop: 'var(--spacing-sm)' }}>
+                <label className="upload-label">
+                  Upload image:
+                  <input
+                    type="file"
+                    ref={imageFileInputRef}
+                    onChange={handleImageUpload}
+                    accept="image/*"
+                    className="visually-hidden"
+                  />
+                  <span className="upload-button">Choose File</span>
+                </label>
+                {uploadedImage && (
+                  <div className="image-preview" style={{ marginTop: 'var(--spacing-sm)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                    <img 
+                      src={uploadedImage.dataUrl} 
+                      alt="Uploaded" 
+                      style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }}
+                    />
+                    <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>{uploadedImage.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setUploadedImage(null)}
+                      style={{ 
+                        background: '#dc3545', 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: '50%', 
+                        width: '20px', 
+                        height: '20px', 
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                      aria-label="Remove image"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Resolution Selection */}
