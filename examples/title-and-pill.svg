@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1919.9999"
+   height="1079.9998"
+   viewBox="0 0 1919.9999 1079.9998"
+   fill="none"
+   version="1.1"
+   id="svg44"
+   sodipodi:docname="title-and-pill.svg"
+   xml:space="preserve"
+   inkscape:export-filename="improving-github-copilot-completions-in-visual-studio.jpg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview44"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.52395832"
+     inkscape:cx="931.37179"
+     inkscape:cy="579.24455"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="3832"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg44"
+     showgrid="false"><inkscape:grid
+       id="grid248"
+       units="px"
+       originx="2249.6353"
+       originy="-3433.5422"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#3f3fff"
+       empopacity="0.25098039"
+       color="#3f3fff"
+       opacity="0.12549"
+       empspacing="5"
+       enabled="true"
+       visible="false" /><inkscape:page
+       x="0"
+       y="0"
+       width="1919.9999"
+       height="1079.9998"
+       id="page2"
+       margin="0"
+       bleed="0" /></sodipodi:namedview><defs
+     id="defs44" /><style
+     type="text/css"
+     id="style1">
+	.st0{fill:#1B1F24;}
+</style><g
+     id="g161"
+     transform="translate(5455.9972,1795.8815)"><text
+       xml:space="preserve"
+       style="font-size:133.333px;line-height:1.1;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI';letter-spacing:0px;word-spacing:0px;fill:#0f0f0f;fill-opacity:1"
+       x="-5241.729"
+       y="-1302.9141"
+       id="text159"><tspan
+         sodipodi:role="line"
+         x="-5241.729"
+         y="-1302.9141"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:133.333px;line-height:1.1;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI Bold';fill:#0f0f0f;fill-opacity:1"
+         id="tspan159">ASP.NET Core </tspan><tspan
+         sodipodi:role="line"
+         x="-5241.729"
+         y="-1156.2478"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:133.333px;line-height:1.1;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI Bold';fill:#0f0f0f;fill-opacity:1"
+         id="tspan168">on .NET Framework: </tspan><tspan
+         sodipodi:role="line"
+         x="-5241.729"
+         y="-1009.5815"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:133.333px;line-height:1.1;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI Bold';fill:#0f0f0f;fill-opacity:1"
+         id="tspan170">ASP.NET Core 2.3</tspan></text><g
+       id="g160"><rect
+         style="fill:#5946da;fill-opacity:1;stroke-width:1.93205;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:0"
+         id="rect159"
+         width="1022.8761"
+         height="125.57484"
+         x="-5245.5742"
+         y="-1613.7828"
+         ry="62.787418" /><text
+         xml:space="preserve"
+         style="font-size:88.4402px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke-width:0.663303"
+         x="-5181.9727"
+         y="-1520.0328"
+         id="text160"><tspan
+           sodipodi:role="line"
+           x="-5181.9727"
+           y="-1520.0328"
+           id="tspan160"
+           style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI Semi-Bold';fill:#ffffff;fill-opacity:1;stroke-width:0.663303">SERVICING ADVISORY</tspan></text></g></g><style
+     type="text/css"
+     id="style2">
+	.st0{fill:#3999C6;}
+	.st1{fill:#FCD116;}
+	.st2{opacity:0.3;fill:#FF8C00;enable-background:new    ;}
+	.st3{font-family:'HelveticaNeue-Medium';}
+	.st4{font-size:31.8596px;}
+</style></svg>
