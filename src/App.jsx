@@ -1,8 +1,51 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import './App.css'
 
 // Base path for GitHub Pages
 const BASE_PATH = import.meta.env.BASE_URL
+
+// Auto-discover logos using Vite's import.meta.glob
+// Any image file in public/logos/ will be automatically included
+const logoModules = import.meta.glob('/public/logos/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
+
+// Process discovered logos into a usable format
+const discoveredLogos = Object.entries(logoModules).map(([path, url]) => {
+  const filename = path.split('/').pop()
+  const name = filename.replace(/\.[^.]+$/, '') // Remove extension
+  const displayName = name
+    .split(/[-_]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+  return {
+    id: name.toLowerCase(),
+    name: displayName,
+    file: filename,
+    url: url
+  }
+})
+
+// Auto-discover backgrounds using Vite's import.meta.glob
+// Any image file in public/backgrounds/ will be automatically included
+const backgroundModules = import.meta.glob('/public/backgrounds/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
+
+// Process discovered backgrounds into a usable format
+const discoveredBackgrounds = Object.entries(backgroundModules).map(([path, url]) => {
+  const filename = path.split('/').pop()
+  const name = filename.replace(/\.[^.]+$/, '') // Remove extension
+  const displayName = name
+    .split(/[-_]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+  // Determine variant based on filename (default to dark)
+  const variant = name.toLowerCase().includes('light') ? 'light' : 'dark'
+  return {
+    id: name.toLowerCase(),
+    name: displayName,
+    file: filename,
+    url: url,
+    variant: variant
+  }
+})
 
 // Helper function to escape XML special characters
 function escapeXml(text) {
@@ -39,18 +82,17 @@ function App() {
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
   const [pill, setPill] = useState('')
-  const [variant, setVariant] = useState('dark')
+  const [variant, setVariant] = useState(discoveredBackgrounds[0]?.variant || 'dark')
   const [resolution, setResolution] = useState('1200x630')
   
-  // State for assets
-  const [backgrounds, setBackgrounds] = useState([])
-  const [selectedBackground, setSelectedBackground] = useState(null)
-  const [logos, setLogos] = useState([])
+  // State for assets - all discovered at build time
+  const [backgrounds] = useState(discoveredBackgrounds)
+  const [selectedBackground, setSelectedBackground] = useState(discoveredBackgrounds[0] || null)
+  const [logos] = useState(discoveredLogos)
   const [selectedLogos, setSelectedLogos] = useState([])
   const [uploadedLogos, setUploadedLogos] = useState([])
   
-  // State for loading and notifications
-  const [loading, setLoading] = useState(true)
+  // State for notifications
   const [toast, setToast] = useState(null)
   
   // Ref for file input
@@ -62,27 +104,6 @@ function App() {
     setToast({ message, type })
     setTimeout(() => setToast(null), 3000)
   }, [])
-
-  // Load assets on mount
-  useEffect(() => {
-    Promise.all([
-      fetch(`${BASE_PATH}backgrounds/manifest.json`).then(r => r.json()),
-      fetch(`${BASE_PATH}logos/manifest.json`).then(r => r.json())
-    ])
-      .then(([bgData, logoData]) => {
-        setBackgrounds(bgData.backgrounds)
-        setLogos(logoData.logos)
-        if (bgData.backgrounds.length > 0) {
-          setSelectedBackground(bgData.backgrounds[0])
-        }
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('Failed to load assets:', err)
-        showToast('Failed to load assets', 'error')
-        setLoading(false)
-      })
-  }, [showToast])
 
   // Handle logo selection
   const toggleLogo = useCallback((logo) => {
@@ -142,9 +163,7 @@ function App() {
   // Generate SVG content
   const generateSvg = useCallback(() => {
     const [width, height] = resolution.split('x').map(Number)
-    const bgUrl = selectedBackground 
-      ? `${BASE_PATH}backgrounds/${selectedBackground.file}`
-      : ''
+    const bgUrl = selectedBackground?.url || ''
 
     // Calculate text positions
     const titleY = height * 0.45
@@ -190,7 +209,7 @@ function App() {
         <!-- Logos in white circles -->
         ${selectedLogos.map((logo, i) => {
           const y = logoStartY + i * 110
-          const logoUrl = logo.isUploaded ? logo.dataUrl : `${BASE_PATH}logos/${logo.file}`
+          const logoUrl = logo.isUploaded ? logo.dataUrl : logo.url
           return `
             <g transform="translate(${logoStartX}, ${y})">
               <circle cx="0" cy="0" r="${logoCircleRadius + 5}" fill="white" filter="url(#shadow)"/>
@@ -367,7 +386,7 @@ function App() {
                     aria-pressed={selectedLogos.some(l => l.id === logo.id)}
                     aria-label={`${logo.name} logo`}
                   >
-                    <img src={`${BASE_PATH}logos/${logo.file}`} alt={logo.name} />
+                    <img src={logo.url} alt={logo.name} />
                   </button>
                 ))}
               </div>
@@ -380,7 +399,7 @@ function App() {
                     allSelectedLogos.map(logo => (
                       <div key={logo.id} className="logo-preview-item">
                         <img 
-                          src={logo.isUploaded ? logo.dataUrl : `${BASE_PATH}logos/${logo.file}`} 
+                          src={logo.isUploaded ? logo.dataUrl : logo.url} 
                           alt={logo.name} 
                         />
                         <button 
