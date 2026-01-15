@@ -74,12 +74,6 @@ function wrapText(text, maxChars) {
   return lines
 }
 
-function getMeasureContext() {
-  if (typeof document === 'undefined') return null
-  const canvas = document.createElement('canvas')
-  return canvas.getContext('2d')
-}
-
 function wrapTextToWidth(text, maxWidth, ctx, font) {
   if (!text) return []
   if (!ctx || !font || !Number.isFinite(maxWidth) || maxWidth <= 0) {
@@ -99,6 +93,8 @@ function wrapTextToWidth(text, maxWidth, ctx, font) {
     }
 
     if (current) lines.push(current)
+    // Handle words that are individually wider than maxWidth
+    // Add them anyway but they may overflow
     current = word
   }
 
@@ -113,6 +109,25 @@ function blobToDataUrl(blob) {
     reader.onload = () => resolve(reader.result)
     reader.readAsDataURL(blob)
   })
+}
+
+// Helper function to safely parse resolution strings
+function parseResolution(resolution) {
+  // Safely parse resolution like "1920x1080", with a sensible default fallback
+  let width = 1920
+  let height = 1080
+  if (typeof resolution === 'string') {
+    const match = resolution.trim().match(/^(\d+)\s*x\s*(\d+)$/i)
+    if (match) {
+      const parsedWidth = Number(match[1])
+      const parsedHeight = Number(match[2])
+      if (Number.isFinite(parsedWidth) && Number.isFinite(parsedHeight) && parsedWidth > 0 && parsedHeight > 0) {
+        width = parsedWidth
+        height = parsedHeight
+      }
+    }
+  }
+  return [width, height]
 }
 
 async function inlineSvgImages(svgString) {
@@ -142,15 +157,28 @@ async function inlineSvgImages(svgString) {
       return
     }
 
+    // Add timeout to prevent hanging indefinitely
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
     try {
-      const response = await fetch(absoluteUrl)
-      if (!response.ok) return
+      const response = await fetch(absoluteUrl, { mode: 'cors', signal: controller.signal })
+      clearTimeout(timeoutId)
+      if (!response.ok) {
+        console.warn(
+          'inlineSvgImages: Failed to inline image due to non-OK response',
+          { url: absoluteUrl, status: response.status, statusText: response.statusText }
+        )
+        return
+      }
       const blob = await response.blob()
       const dataUrl = await blobToDataUrl(blob)
       img.setAttribute('href', dataUrl)
       img.setAttribute('xlink:href', dataUrl)
-    } catch {
-      // If inlining fails, keep original href.
+    } catch (error) {
+      clearTimeout(timeoutId)
+      // If inlining fails (e.g., CORS restrictions), keep original href but log for debugging.
+      console.warn('inlineSvgImages: Error while inlining image', { url: absoluteUrl, error })
     }
   }))
 
@@ -243,7 +271,7 @@ function App() {
 
   // Generate SVG content - matching the example template styles
   const generateSvg = useCallback(() => {
-    const [width, height] = resolution.split('x').map(Number)
+    const [width, height] = parseResolution(resolution)
     const bgUrl = selectedBackground?.url || ''
 
     // Font family matching the examples
@@ -263,10 +291,23 @@ function App() {
     const pillX = edgeMarginX
     const pillY = edgeMarginY
     const pillPaddingX = 44 * scale
-    const pillCtx = getMeasureContext()
+    // Use a dedicated offscreen canvas context for text measurement to avoid
+    // interfering with other canvas operations.
+    const textCanvas = document.createElement('canvas')
+    const textCtx = textCanvas.getContext('2d')
     const pillFont = `600 ${pillFontSize}px ${fontFamily}`
-    if (pillCtx) pillCtx.font = pillFont
-    const pillTextWidth = (pill && pillCtx) ? pillCtx.measureText(pill).width : (pill ? pill.length * pillFontSize * 0.6 : 0)
+    if (textCtx) textCtx.font = pillFont
+    const pillTextWidth = (() => {
+      if (!pill) return 0
+      if (textCtx) {
+        // Use accurate canvas text measurement when running in a browser.
+        return textCtx.measureText(pill).width
+      }
+      // Fallback for SSR (getMeasureContext() returns null when `document` is undefined).
+      // Approximate average character width as ~0.6 * fontSize for Segoe UI / system fonts.
+      // This keeps layout stable enough for server-rendered SVGs without requiring DOM APIs.
+      return pill.length * pillFontSize * 0.6
+    })()
     const pillWidth = pill ? pillTextWidth + (pillPaddingX * 2) : 0
 
     // Title dimensions (133.333px at 1920 width, bold, line-height 1.1)
@@ -286,6 +327,9 @@ function App() {
     const desiredLogoCenterX = width - (376 * scale)
     const logoRightMargin = 55 * scale
     const logoEdgeMarginY = 55 * scale
+    // Note: 3-logo layouts use a slightly smaller vertical gap to compensate for the
+    // horizontal staggering applied below. This keeps the overall logo stack visually
+    // compact, but means spacing will change when switching between 2 and 3 logos.
     const logoGap = (logoCount === 3 ? 18 : 24) * scale
 
     let logoCircleRadius = 205 * scale
@@ -321,18 +365,22 @@ function App() {
     const textRightBoundary = selectedLogos.length > 0 ? (width / 2) : (width - edgeMarginX)
     const textMaxWidth = Math.max(0, textRightBoundary - titleX)
 
-    const textCtx = pillCtx
     const titleLines = wrapTextToWidth(title, textMaxWidth, textCtx, titleFont)
     const subtitleLines = wrapTextToWidth(subtitle, textMaxWidth, textCtx, subtitleFont)
 
     // Subtitle is bottom-aligned with the same margin as the pill from the top.
+    // This calculation positions the first line's baseline at the calculated y-position,
+    // with additional lines stacked above it using the line height.
     const subtitleBottomBaselineY = height - edgeMarginY
     const subtitleY = subtitleBottomBaselineY - Math.max(0, (subtitleLines.length - 1) * subtitleLineHeight)
+
+    // Generate a unique ID prefix to avoid clipPath collisions when multiple SVGs are on the page
+    const uniqueId = `svg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
     return `
       <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
         <!-- Background -->
-        ${selectedBackground ? `<image href="${bgUrl}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="none"/>` : `<rect width="${width}" height="${height}" fill="#1a1a2e"/>`}
+        ${selectedBackground ? `<image href="${bgUrl}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice"/>` : `<rect width="${width}" height="${height}" fill="#1a1a2e"/>`}
         
         <!-- Pill/Badge -->
         ${pill ? `
@@ -367,21 +415,22 @@ function App() {
       const logoUrl = logo.isUploaded ? logo.dataUrl : logo.url
       const logoClipRadius = logoCircleRadius * 0.9
       // Size image so a square logo fits entirely within the circular clip.
+      // The 0.98 factor adds a small safety margin so square logo corners don't touch the circular clip boundary.
       const logoSize = logoClipRadius * Math.SQRT2 * 0.98
       return `
             <g transform="translate(${x}, ${y})">
-              <circle cx="0" cy="0" r="${logoCircleRadius}" fill="white" stroke="none" stroke-width="0" filter="url(#shadow)"/>
-              <clipPath id="logo-clip-${i}">
-                <circle cx="0" cy="0" r="${logoClipRadius}" fill="white" stroke="none" stroke-width="0"/>
+              <circle cx="0" cy="0" r="${logoCircleRadius}" fill="white" filter="url(#${uniqueId}-shadow)"/>
+              <clipPath id="${uniqueId}-logo-clip-${i}">
+                <circle cx="0" cy="0" r="${logoClipRadius}"/>
               </clipPath>
-              <image href="${logoUrl}" x="${-logoSize / 2}" y="${-logoSize / 2}" width="${logoSize}" height="${logoSize}" clip-path="url(#logo-clip-${i})" preserveAspectRatio="xMidYMid meet"/>
+              <image href="${logoUrl}" x="${-logoSize / 2}" y="${-logoSize / 2}" width="${logoSize}" height="${logoSize}" clip-path="url(#${uniqueId}-logo-clip-${i})" preserveAspectRatio="xMidYMid meet"/>
             </g>
           `
     }).join('')}
         
         <!-- Shadow filter for logos -->
         <defs>
-          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <filter id="${uniqueId}-shadow" x="-50%" y="-50%" width="200%" height="200%">
             <feDropShadow dx="0" dy="2" stdDeviation="8" flood-opacity="0.15"/>
           </filter>
         </defs>
@@ -391,13 +440,23 @@ function App() {
 
   // Export as raster (JPG/PNG/WEBP)
   const exportRaster = useCallback(async () => {
-    const [width, height] = resolution.split('x').map(Number)
+    const [width, height] = parseResolution(resolution)
     const svgString = generateSvg()
+
+    // Check for WebP support if WebP format is selected
+    const format = (exportFormat || 'jpg').toLowerCase()
+    if (format === 'webp') {
+      const canvas = document.createElement('canvas')
+      const isWebPSupported = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0
+      if (!isWebPSupported) {
+        showToast('WebP format is not supported in this browser. Try JPG or PNG instead.', 'error')
+        return
+      }
+    }
 
     try {
       const inlinedSvg = await inlineSvgImages(svgString)
 
-      const format = (exportFormat || 'jpg').toLowerCase()
       const mimeType = format === 'png' ? 'image/png' : (format === 'webp' ? 'image/webp' : 'image/jpeg')
       const extension = format === 'png' ? 'png' : (format === 'webp' ? 'webp' : 'jpg')
       const quality = mimeType === 'image/png' ? undefined : 0.92
@@ -417,24 +476,23 @@ function App() {
 
       await new Promise((resolve, reject) => {
         img.onload = resolve
-        img.onerror = reject
+        img.onerror = () => reject(new Error('Failed to load SVG image'))
         img.src = url
       })
 
       if (typeof img.decode === 'function') {
-        try {
-          await img.decode()
-        } catch {
+        img.decode().catch(() => {
           // decode() isn't supported everywhere; onload is usually enough.
-        }
+        })
       }
 
-      ctx.clearRect(0, 0, width, height)
       ctx.drawImage(img, 0, 0, width, height)
-      URL.revokeObjectURL(url)
 
       // Convert to image and download
       canvas.toBlob((blob) => {
+        // Revoke the object URL after the canvas has been fully processed
+        URL.revokeObjectURL(url)
+        
         if (!blob) {
           showToast('Export failed. Try SVG export instead.', 'error')
           return
@@ -469,7 +527,10 @@ function App() {
   // Get all logos (library + uploaded)
   const allSelectedLogos = [...selectedLogos]
 
-  const [previewWidth, previewHeight] = resolution.split('x').map(Number)
+  const [previewWidth, previewHeight] = parseResolution(resolution)
+
+  // Memoize the preview SVG to avoid unnecessary regeneration
+  const previewSvg = useMemo(() => generateSvg(), [generateSvg])
 
   return (
     <div className="container">
@@ -621,9 +682,9 @@ function App() {
               value={resolution}
               onChange={(e) => setResolution(e.target.value)}
             >
+              <option value="1200x630">1200 × 630 (Social/OG)</option>
               <option value="1920x1080">1920 × 1080 (HD)</option>
               <option value="1280x720">1280 × 720 (720p)</option>
-              <option value="1200x630">1200 × 630 (Social/OG)</option>
             </select>
           </div>
 
@@ -635,7 +696,7 @@ function App() {
               value={exportFormat}
               onChange={(e) => setExportFormat(e.target.value)}
             >
-              <option value="jpg">JPG (default)</option>
+              <option value="jpg">JPG</option>
               <option value="png">PNG</option>
               <option value="webp">WEBP</option>
             </select>
@@ -644,7 +705,7 @@ function App() {
           {/* Export Buttons */}
           <div className="export-actions">
             <button type="button" className="btn btn-primary" onClick={exportRaster}>
-              Export Image
+              Export as {exportFormat.toUpperCase()}
             </button>
             <button type="button" className="btn btn-secondary" onClick={exportSvg}>
               Export as SVG
@@ -660,7 +721,7 @@ function App() {
               ref={previewRef}
               className="preview"
               style={{ '--preview-aspect': `${previewWidth} / ${previewHeight}` }}
-              dangerouslySetInnerHTML={{ __html: generateSvg() }}
+              dangerouslySetInnerHTML={{ __html: previewSvg }}
             />
           </div>
         </section>
