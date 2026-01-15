@@ -156,24 +156,55 @@ function App() {
   }, [selectedLogos.length, uploadedLogos.length, showToast])
 
   // Get text colors based on variant
-  const textColor = useMemo(() => variant === 'dark' ? '#ffffff' : '#333333', [variant])
-  const secondaryTextColor = useMemo(() => variant === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)', [variant])
-  const pillBgColor = useMemo(() => variant === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)', [variant])
+  const textColor = useMemo(() => variant === 'dark' ? '#ffffff' : '#0f0f0f', [variant])
+  // Pill background - solid colors matching the example templates
+  const pillBgColor = useMemo(() => variant === 'dark' ? '#8dc8e8' : '#5946da', [variant])
 
-  // Generate SVG content
+  // Generate SVG content - matching the example template styles
   const generateSvg = useCallback(() => {
     const [width, height] = resolution.split('x').map(Number)
     const bgUrl = selectedBackground?.url || ''
+    
+    // Font family matching the examples
+    const fontFamily = "'Segoe UI', system-ui, -apple-system, sans-serif"
+    
+    // Scale factor based on 1920x1080 reference
+    const scale = width / 1920
+    
+    // Pill dimensions and position (matching examples)
+    const pillHeight = 126 * scale
+    const pillRadius = pillHeight / 2
+    const pillFontSize = 88 * scale
+    const pillX = 75 * scale
+    const pillY = 132 * scale
+    const pillPaddingX = 68 * scale
+    const pillWidth = pill ? (pill.length * pillFontSize * 0.6) + (pillPaddingX * 2) : 0
+    
+    // Title dimensions (133.333px at 1920 width, bold, line-height 1.1)
+    const titleFontSize = 133 * scale
+    const titleLineHeight = titleFontSize * 1.1
+    const titleX = 73 * scale
+    const titleY = 444 * scale
+    
+    // Subtitle dimensions (74.6667px at 1920 width, bold)
+    const subtitleFontSize = 75 * scale
+    const subtitleLineHeight = subtitleFontSize * 1.1
+    
+    // Logo circle (205px radius at 1920 width, positioned ~376px from right edge)
+    const logoCircleRadius = 205 * scale
+    const logoCircleX = width - (376 * scale)
+    const logoCircleY = height * 0.48
+    
+    // For multiple logos, stack them vertically
+    const logoSpacing = (logoCircleRadius * 2 + 20 * scale)
+    const logoStartY = logoCircleY - ((selectedLogos.length - 1) * logoSpacing / 2)
 
-    // Calculate text positions
-    const titleY = height * 0.45
-    const subtitleY = titleY + 50
-    const pillY = 60
-
-    // Calculate logo positions (right side, in white circles)
-    const logoCircleRadius = 45
-    const logoStartX = width - 100
-    const logoStartY = height / 2 - ((selectedLogos.length - 1) * 55)
+    // Calculate title lines
+    const titleLines = wrapText(title, Math.floor(22 * (1920 / width)))
+    const titleBlockHeight = titleLines.length * titleLineHeight
+    
+    // Subtitle position (below title block)
+    const subtitleY = titleY + titleBlockHeight + (40 * scale)
 
     return `
       <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
@@ -182,41 +213,42 @@ function App() {
         
         <!-- Pill/Badge -->
         ${pill ? `
-          <g transform="translate(60, ${pillY})">
-            <rect x="0" y="-22" width="${pill.length * 12 + 24}" height="32" rx="16" fill="${pillBgColor}"/>
-            <text x="${(pill.length * 12 + 24) / 2}" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="${textColor}" text-anchor="middle" dominant-baseline="middle">${escapeXml(pill)}</text>
+          <g>
+            <rect x="${pillX}" y="${pillY}" width="${pillWidth}" height="${pillHeight}" rx="${pillRadius}" fill="${pillBgColor}"/>
+            <text x="${pillX + pillWidth / 2}" y="${pillY + pillHeight / 2 + pillFontSize * 0.35}" font-family="${fontFamily}" font-size="${pillFontSize}" font-weight="600" fill="${variant === 'dark' ? '#000000' : '#ffffff'}" text-anchor="middle">${escapeXml(pill)}</text>
           </g>
         ` : ''}
         
         <!-- Title -->
         ${title ? `
-          <text x="60" y="${titleY}" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="700" fill="${textColor}">
-            ${wrapText(title, 18).map((line, i) => 
-              `<tspan x="60" dy="${i === 0 ? 0 : 65}">${escapeXml(line)}</tspan>`
+          <text x="${titleX}" y="${titleY}" font-family="${fontFamily}" font-size="${titleFontSize}" font-weight="700" fill="${textColor}" style="line-height:1.1">
+            ${titleLines.map((line, i) => 
+              `<tspan x="${titleX}" dy="${i === 0 ? 0 : titleLineHeight}">${escapeXml(line)}</tspan>`
             ).join('')}
           </text>
         ` : ''}
         
         <!-- Subtitle -->
         ${subtitle ? `
-          <text x="60" y="${subtitleY + (wrapText(title, 18).length - 1) * 65 + 40}" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="400" fill="${secondaryTextColor}">
-            ${wrapText(subtitle, 40).map((line, i) => 
-              `<tspan x="60" dy="${i === 0 ? 0 : 35}">${escapeXml(line)}</tspan>`
+          <text x="${titleX}" y="${subtitleY}" font-family="${fontFamily}" font-size="${subtitleFontSize}" font-weight="700" fill="${textColor}" style="line-height:1.1">
+            ${wrapText(subtitle, Math.floor(35 * (1920 / width))).map((line, i) => 
+              `<tspan x="${titleX}" dy="${i === 0 ? 0 : subtitleLineHeight}">${escapeXml(line)}</tspan>`
             ).join('')}
           </text>
         ` : ''}
         
         <!-- Logos in white circles -->
         ${selectedLogos.map((logo, i) => {
-          const y = logoStartY + i * 110
+          const y = logoStartY + i * logoSpacing
           const logoUrl = logo.isUploaded ? logo.dataUrl : logo.url
+          const logoSize = logoCircleRadius * 1.4
           return `
-            <g transform="translate(${logoStartX}, ${y})">
-              <circle cx="0" cy="0" r="${logoCircleRadius + 5}" fill="white" filter="url(#shadow)"/>
+            <g transform="translate(${logoCircleX}, ${y})">
+              <circle cx="0" cy="0" r="${logoCircleRadius}" fill="white" filter="url(#shadow)"/>
               <clipPath id="logo-clip-${i}">
-                <circle cx="0" cy="0" r="${logoCircleRadius - 5}"/>
+                <circle cx="0" cy="0" r="${logoCircleRadius * 0.85}"/>
               </clipPath>
-              <image href="${logoUrl}" x="${-logoCircleRadius + 10}" y="${-logoCircleRadius + 10}" width="${(logoCircleRadius - 10) * 2}" height="${(logoCircleRadius - 10) * 2}" clip-path="url(#logo-clip-${i})" preserveAspectRatio="xMidYMid meet"/>
+              <image href="${logoUrl}" x="${-logoSize / 2}" y="${-logoSize / 2}" width="${logoSize}" height="${logoSize}" clip-path="url(#logo-clip-${i})" preserveAspectRatio="xMidYMid meet"/>
             </g>
           `
         }).join('')}
@@ -224,12 +256,12 @@ function App() {
         <!-- Shadow filter for logos -->
         <defs>
           <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.2"/>
+            <feDropShadow dx="0" dy="2" stdDeviation="8" flood-opacity="0.15"/>
           </filter>
         </defs>
       </svg>
     `
-  }, [resolution, selectedBackground, title, subtitle, pill, selectedLogos, textColor, secondaryTextColor, pillBgColor])
+  }, [resolution, selectedBackground, title, subtitle, pill, selectedLogos, textColor, variant, pillBgColor])
 
   // Export as PNG
   const exportPng = useCallback(async () => {
