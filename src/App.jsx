@@ -290,7 +290,7 @@ function App() {
   const allSelectedLogos = [...selectedLogos]
 
   return (
-    <div className={`container ${loading ? 'loading' : ''}`}>
+    <div className="container">
       <header className="header">
         <h1>Blog Thumbnail Generator</h1>
         <p className="subtitle">Create consistent blog thumbnails for sharing</p>
