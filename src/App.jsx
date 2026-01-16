@@ -3,7 +3,7 @@ import './App.css'
 
 // Auto-discover logos using Vite's import.meta.glob
 // Any image file in public/logos/ will be automatically included
-const logoModules = import.meta.glob('/public/logos/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
+const logoModules = import.meta.glob('../public/logos/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
 
 // Process discovered logos into a usable format
 const discoveredLogos = Object.entries(logoModules).map(([path, url]) => {
@@ -23,7 +23,7 @@ const discoveredLogos = Object.entries(logoModules).map(([path, url]) => {
 
 // Auto-discover backgrounds using Vite's import.meta.glob
 // Any image file in public/backgrounds/ will be automatically included
-const backgroundModules = import.meta.glob('/public/backgrounds/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
+const backgroundModules = import.meta.glob('../public/backgrounds/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
 
 // Process discovered backgrounds into a usable format
 const discoveredBackgrounds = Object.entries(backgroundModules).map(([path, url]) => {
