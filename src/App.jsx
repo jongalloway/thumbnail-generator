@@ -1,14 +1,26 @@
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import './App.css'
 
+// Template system
+import { TEMPLATES, getTemplate, getDefaultValues, getTemplateIds, FIELD_TYPES } from './templates'
+import { DotNetBlogTemplate } from './templates/DotNetBlogTemplate'
+import { CommunityStandupTemplate } from './templates/CommunityStandupTemplate'
+
+// Components
+import { TemplateSelector, ImageArrayField, ImageField, LogoArrayField } from './components'
+
+// Hooks
+import { useToast } from './hooks/useToast'
+import { useExport } from './hooks/useExport'
+import { loadPersistedSettings, persistSetting } from './hooks/usePersistedState'
+import { parseResolution } from './utils/svgUtils'
+
 // Auto-discover logos using Vite's import.meta.glob
-// Any image file in public/logos/ will be automatically included
 const logoModules = import.meta.glob('../public/logos/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
 
-// Process discovered logos into a usable format
 const discoveredLogos = Object.entries(logoModules).map(([path, url]) => {
   const filename = path.split('/').pop()
-  const name = filename.replace(/\.[^.]+$/, '') // Remove extension
+  const name = filename.replace(/\.[^.]+$/, '')
   const displayName = name
     .split(/[-_]/)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -21,19 +33,16 @@ const discoveredLogos = Object.entries(logoModules).map(([path, url]) => {
   }
 })
 
-// Auto-discover backgrounds using Vite's import.meta.glob
-// Any image file in public/backgrounds/ will be automatically included
+// Auto-discover shared backgrounds
 const backgroundModules = import.meta.glob('../public/backgrounds/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
 
-// Process discovered backgrounds into a usable format
 const discoveredBackgrounds = Object.entries(backgroundModules).map(([path, url]) => {
   const filename = path.split('/').pop()
-  const name = filename.replace(/\.[^.]+$/, '') // Remove extension
+  const name = filename.replace(/\.[^.]+$/, '')
   const displayName = name
     .split(/[-_]/)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
-  // Determine variant based on filename (default to dark)
   const variant = name.toLowerCase().includes('light') ? 'light' : 'dark'
   return {
     id: name.toLowerCase(),
@@ -44,604 +53,260 @@ const discoveredBackgrounds = Object.entries(backgroundModules).map(([path, url]
   }
 })
 
-// Image layout constants - derived from example SVG files
-// Circle layout (from circle-image.svg): positioned in lower-right corner with bleed effect
-const CIRCLE_CENTER_X_RATIO = 0.878  // 87.8% of width
-const CIRCLE_CENTER_Y_RATIO = 0.628  // 62.8% of height
-const CIRCLE_RADIUS_RATIO = 0.256    // 25.6% of width
+// Auto-discover Community Standup backgrounds
+const standupBackgroundModules = import.meta.glob('../public/templates/dotnet-community-standup/*.{jpg,jpeg,png,webp}', { eager: true, query: '?url', import: 'default' })
 
-// Split layout (from split-image.svg): diagonal clip from top-right to bottom
-const SPLIT_CLIP_TOP_X_BASE = 1345   // Top X coordinate at 1920 width
-const SPLIT_CLIP_BOTTOM_X_BASE = 1090 // Bottom X coordinate at 1920 width
+const standupBackgrounds = Object.entries(standupBackgroundModules).map(([path, url]) => {
+  const filename = path.split('/').pop()
+  const name = filename.replace(/\.[^.]+$/, '')
+  const displayName = name
+    .split(/[-_]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+  return {
+    id: name.toLowerCase(),
+    name: displayName,
+    file: filename,
+    url: url,
+    variant: 'light' // The standup background appears to be light-themed
+  }
+})
 
-// Overlay layout (from overlay-image.svg): rectangular image on right side
-const OVERLAY_RECT_X_BASE = 1239     // X position at 1920 width
-const OVERLAY_RECT_Y_BASE = 110      // Y position at 1080 height
-const OVERLAY_RECT_WIDTH_BASE = 950  // Width at 1920 width
-const OVERLAY_RECT_HEIGHT_BASE = 861 // Height at 1080 height
-
-// Helper function to escape XML special characters
-function escapeXml(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
+// Map template IDs to their background sets
+const templateBackgrounds = {
+  'dotnet-blog': discoveredBackgrounds,
+  'dotnet-community-standup': standupBackgrounds.length > 0 ? standupBackgrounds : discoveredBackgrounds,
 }
 
-// Helper function to wrap text into lines
-function wrapText(text, maxChars) {
-  if (!text) return []
-  const words = text.split(' ')
-  const lines = []
-  let currentLine = ''
-
-  words.forEach(word => {
-    if ((currentLine + ' ' + word).trim().length <= maxChars) {
-      currentLine = (currentLine + ' ' + word).trim()
-    } else {
-      if (currentLine) lines.push(currentLine)
-      currentLine = word
-    }
-  })
-
-  if (currentLine) lines.push(currentLine)
-  return lines
+// Template component mapping
+const templateComponents = {
+  'dotnet-blog': DotNetBlogTemplate,
+  'dotnet-community-standup': CommunityStandupTemplate,
 }
 
-function wrapTextToWidth(text, maxWidth, ctx, font) {
-  if (!text) return []
-  if (!ctx || !font || !Number.isFinite(maxWidth) || maxWidth <= 0) {
-    return wrapText(text, 22)
-  }
-
-  ctx.font = font
-  const words = text.split(/\s+/).filter(Boolean)
-  const lines = []
-  let current = ''
-
-  for (const word of words) {
-    const next = current ? `${current} ${word}` : word
-    if (ctx.measureText(next).width <= maxWidth) {
-      current = next
-      continue
-    }
-
-    if (current) lines.push(current)
-    // Handle words that are individually wider than maxWidth
-    // Add them anyway but they may overflow
-    current = word
-  }
-
-  if (current) lines.push(current)
-  return lines
-}
-
-function blobToDataUrl(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onerror = () => reject(new Error('Failed to read blob'))
-    reader.onload = () => resolve(reader.result)
-    reader.readAsDataURL(blob)
-  })
-}
-
-// Helper function to safely parse resolution strings
-function parseResolution(resolution) {
-  // Safely parse resolution like "1920x1080", with a sensible default fallback
-  let width = 1920
-  let height = 1080
-  if (typeof resolution === 'string') {
-    const match = resolution.trim().match(/^(\d+)\s*x\s*(\d+)$/i)
-    if (match) {
-      const parsedWidth = Number(match[1])
-      const parsedHeight = Number(match[2])
-      if (Number.isFinite(parsedWidth) && Number.isFinite(parsedHeight) && parsedWidth > 0 && parsedHeight > 0) {
-        width = parsedWidth
-        height = parsedHeight
-      }
-    }
-  }
-  return [width, height]
-}
-
-// Constants
-const FETCH_TIMEOUT_MS = 10000 // 10 seconds
-
-async function inlineSvgImages(svgString) {
-  if (typeof window === 'undefined' || !svgString) return svgString
-
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(svgString, 'image/svg+xml')
-  const svg = doc.documentElement
-  if (!svg || svg.nodeName.toLowerCase() !== 'svg') return svgString
-
-  if (!svg.getAttribute('xmlns')) {
-    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-  }
-  if (!svg.getAttribute('xmlns:xlink')) {
-    svg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
-  }
-
-  const images = Array.from(svg.querySelectorAll('image'))
-  await Promise.all(images.map(async (img) => {
-    const href = img.getAttribute('href') || img.getAttribute('xlink:href')
-    if (!href || href.startsWith('data:')) return
-
-    let absoluteUrl
-    try {
-      absoluteUrl = new URL(href, window.location.href).toString()
-    } catch {
-      return
-    }
-
-    // Add timeout to prevent hanging indefinitely
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
-
-    try {
-      const response = await fetch(absoluteUrl, { mode: 'cors', signal: controller.signal })
-      clearTimeout(timeoutId)
-      if (!response.ok) {
-        console.warn(
-          'inlineSvgImages: Failed to inline image due to non-OK response',
-          { url: absoluteUrl, status: response.status, statusText: response.statusText }
-        )
-        return
-      }
-      const blob = await response.blob()
-      const dataUrl = await blobToDataUrl(blob)
-      img.setAttribute('href', dataUrl)
-      img.setAttribute('xlink:href', dataUrl)
-    } catch (error) {
-      clearTimeout(timeoutId)
-      // If inlining fails (e.g., CORS restrictions), keep original href but log for debugging.
-      console.warn('inlineSvgImages: Error while inlining image', { url: absoluteUrl, error })
-    }
-  }))
-
-  return new XMLSerializer().serializeToString(svg)
+// Helper to find a background by ID from a backgrounds array
+function findBackgroundById(backgrounds, id) {
+  return backgrounds.find(bg => bg.id === id) || null
 }
 
 function App() {
-  // State for form inputs
-  const [title, setTitle] = useState('')
-  const [subtitle, setSubtitle] = useState('')
-  const [pill, setPill] = useState('')
-  const [variant, setVariant] = useState(discoveredBackgrounds[0]?.variant || 'dark')
-  const [resolution, setResolution] = useState('1920x1080')
-  const [exportFormat, setExportFormat] = useState('jpg')
+  // Load persisted settings on init
+  const persistedSettings = useMemo(() => loadPersistedSettings(), [])
 
-  // State for assets - all discovered at build time
-  const [backgrounds] = useState(discoveredBackgrounds)
-  const [selectedBackground, setSelectedBackground] = useState(discoveredBackgrounds[0] || null)
-  const [logos] = useState(discoveredLogos)
-  const [selectedLogos, setSelectedLogos] = useState([])
-  const [, setUploadedLogos] = useState([])
+  // Template selection - restore from localStorage if available
+  const [selectedTemplateId, setSelectedTemplateId] = useState(() => {
+    const persisted = persistedSettings.templateId
+    if (persisted && getTemplateIds().includes(persisted)) {
+      return persisted
+    }
+    return getTemplateIds()[0]
+  })
+  const selectedTemplate = getTemplate(selectedTemplateId)
 
-  // State for image layouts (mutually exclusive with logos)
-  const [imageLayout, setImageLayout] = useState('none') // 'none', 'circle', 'split', 'overlay'
-  const [uploadedImage, setUploadedImage] = useState(null) // { dataUrl, name }
+  // Template field values
+  const [fieldValues, setFieldValues] = useState(() => getDefaultValues(selectedTemplateId))
 
-  // State for notifications
-  const [toast, setToast] = useState(null)
+  // Background and export settings - restore background from localStorage if available
+  const backgrounds = useMemo(() => templateBackgrounds[selectedTemplateId] || discoveredBackgrounds, [selectedTemplateId])
+  const [selectedBackground, setSelectedBackground] = useState(() => {
+    const persistedBgId = persistedSettings.backgroundId
+    const persistedTemplateId = persistedSettings.templateId
+    // Only restore background if it's from the same template
+    if (persistedBgId && persistedTemplateId === selectedTemplateId) {
+      const bgList = templateBackgrounds[selectedTemplateId] || discoveredBackgrounds
+      const found = findBackgroundById(bgList, persistedBgId)
+      if (found) return found
+    }
+    return backgrounds[0] || null
+  })
+  const [variant, setVariant] = useState(selectedBackground?.variant || 'dark')
+  const [resolution, setResolution] = useState(() => persistedSettings.resolution || '1920x1080')
+  const [exportFormat, setExportFormat] = useState(() => persistedSettings.exportFormat || 'jpg')
 
-  // Ref for file input
-  const fileInputRef = useRef(null)
-  const imageFileInputRef = useRef(null)
-  const previewRef = useRef(null)
+  // Persist settings when they change
+  useEffect(() => {
+    persistSetting('templateId', selectedTemplateId)
+  }, [selectedTemplateId])
 
-  // Show toast notification
-  const showToast = useCallback((message, type = 'success') => {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 3000)
+  useEffect(() => {
+    if (selectedBackground) {
+      persistSetting('backgroundId', selectedBackground.id)
+    }
+  }, [selectedBackground])
+
+  useEffect(() => {
+    persistSetting('resolution', resolution)
+  }, [resolution])
+
+  useEffect(() => {
+    persistSetting('exportFormat', exportFormat)
+  }, [exportFormat])
+
+  // Toast notifications
+  const { toast, showToast } = useToast()
+
+  // Handle template change - update backgrounds
+  const handleTemplateChangeWithBackgrounds = useCallback((newTemplateId) => {
+    const newBackgrounds = templateBackgrounds[newTemplateId] || discoveredBackgrounds
+    // Try to find a previously used background for this template
+    const persisted = loadPersistedSettings()
+    let newBackground = null
+    if (persisted[`backgroundId_${newTemplateId}`]) {
+      newBackground = findBackgroundById(newBackgrounds, persisted[`backgroundId_${newTemplateId}`])
+    }
+    if (!newBackground && newBackgrounds.length > 0) {
+      newBackground = newBackgrounds[0]
+    }
+    if (newBackground) {
+      setSelectedBackground(newBackground)
+      setVariant(newBackground.variant)
+    }
+    setSelectedTemplateId(newTemplateId)
+    setFieldValues(getDefaultValues(newTemplateId))
   }, [])
 
-  // Handle logo selection - clears image layout (mutually exclusive)
-  const toggleLogo = useCallback((logo) => {
-    setSelectedLogos(prev => {
-      const isSelected = prev.some(l => l.id === logo.id)
-      if (isSelected) {
-        return prev.filter(l => l.id !== logo.id)
-      }
-      if (prev.length >= 3) {
-        showToast('Maximum 3 logos allowed', 'error')
-        return prev
-      }
-      // Clear image layout when adding a logo (mutually exclusive)
-      setImageLayout('none')
-      setUploadedImage(null)
-      return [...prev, logo]
-    })
-  }, [showToast])
+  // Also persist per-template background when it changes
+  useEffect(() => {
+    if (selectedBackground) {
+      persistSetting(`backgroundId_${selectedTemplateId}`, selectedBackground.id)
+    }
+  }, [selectedBackground, selectedTemplateId])
 
-  // Handle logo removal
-  const removeLogo = useCallback((logoId) => {
-    setSelectedLogos(prev => prev.filter(l => l.id !== logoId))
-    setUploadedLogos(prev => prev.filter(l => l.id !== logoId))
+  // The handleTemplateChangeWithBackgrounds callback handles template changes
+
+  // Handle field value change
+  const handleFieldChange = useCallback((fieldId, value) => {
+    setFieldValues(prev => ({ ...prev, [fieldId]: value }))
   }, [])
 
-  // Handle file upload (for logos) - clears image layout (mutually exclusive)
-  const handleFileUpload = useCallback((event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+  // Get the template component and generate SVG
+  const TemplateComponent = templateComponents[selectedTemplateId]
+  const templateResult = TemplateComponent({
+    values: fieldValues,
+    selectedBackground,
+    variant,
+    resolution,
+  })
+  const generateSvg = templateResult.generateSvg
 
-    if (selectedLogos.length >= 3) {
-      showToast('Maximum 3 logos allowed', 'error')
-      return
-    }
+  // Export functionality
+  const { exportRaster, exportSvg } = useExport(generateSvg, resolution, showToast)
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const newLogo = {
-        id: `uploaded-${Date.now()}`,
-        name: file.name,
-        dataUrl: e.target.result,
-        isUploaded: true
-      }
-      setUploadedLogos(prev => [...prev, newLogo])
-      setSelectedLogos(prev => [...prev, newLogo])
-      // Clear image layout when adding a logo (mutually exclusive)
-      setImageLayout('none')
-      setUploadedImage(null)
-    }
-    reader.readAsDataURL(file)
-
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-  }, [selectedLogos.length, showToast])
-
-  // Handle image upload for image layouts - clears logos (mutually exclusive)
-  const handleImageUpload = useCallback((event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setUploadedImage({
-        dataUrl: e.target.result,
-        name: file.name
-      })
-      // Clear logos when uploading an image (mutually exclusive)
-      setSelectedLogos([])
-      setUploadedLogos([])
-    }
-    reader.readAsDataURL(file)
-
-    // Reset file input
-    if (imageFileInputRef.current) {
-      imageFileInputRef.current.value = ''
-    }
-  }, [])
-
-  // Handle image layout change - clears logos if a layout is selected (mutually exclusive)
-  const handleImageLayoutChange = useCallback((layout) => {
-    setImageLayout(layout)
-    if (layout !== 'none') {
-      // Clear logos when selecting an image layout (mutually exclusive)
-      setSelectedLogos([])
-      setUploadedLogos([])
-    } else {
-      // Clear uploaded image when no image layout is selected
-      setUploadedImage(null)
-    }
-  }, [])
-
-  // Get text colors based on variant
-  const textColor = useMemo(() => variant === 'dark' ? '#ffffff' : '#0f0f0f', [variant])
-  // Pill background - solid colors matching the example templates
-  const pillBgColor = useMemo(() => variant === 'dark' ? '#8dc8e8' : '#5946da', [variant])
-
-  // Generate SVG content - matching the example template styles
-  const generateSvg = useCallback(() => {
-    const [width, height] = parseResolution(resolution)
-    const bgUrl = selectedBackground?.url || ''
-
-    // Font family matching the examples
-    const fontFamily = "'Segoe UI', system-ui, -apple-system, sans-serif"
-
-    // Scale factor based on 1920x1080 reference
-    const scale = width / 1920
-
-    // Shared padding/margins (matching examples)
-    const edgeMarginX = 75 * scale
-    const edgeMarginY = 132 * scale
-
-    // Pill dimensions and position (matching examples)
-    const pillHeight = 126 * scale
-    const pillRadius = pillHeight / 2
-    const pillFontSize = 88 * scale
-    const pillX = edgeMarginX
-    const pillY = edgeMarginY
-    const pillPaddingX = 44 * scale
-    // Use a dedicated offscreen canvas context for text measurement to avoid
-    // interfering with other canvas operations.
-    const textCanvas = document.createElement('canvas')
-    const textCtx = textCanvas.getContext('2d')
-    const pillFont = `600 ${pillFontSize}px ${fontFamily}`
-    if (textCtx) textCtx.font = pillFont
-    const pillTextWidth = (() => {
-      if (!pill) return 0
-      if (textCtx) {
-        // Use accurate canvas text measurement when running in a browser.
-        return textCtx.measureText(pill).width
-      }
-      // Fallback for SSR (getMeasureContext() returns null when `document` is undefined).
-      // Approximate average character width as ~0.6 * fontSize for Segoe UI / system fonts.
-      // This keeps layout stable enough for server-rendered SVGs without requiring DOM APIs.
-      return pill.length * pillFontSize * 0.6
-    })()
-    const pillWidth = pill ? pillTextWidth + (pillPaddingX * 2) : 0
-
-    // Title dimensions (133.333px at 1920 width, bold, line-height 1.1)
-    const titleFontSize = 133 * scale
-    const titleLineHeight = titleFontSize * 1.1
-    const titleX = 73 * scale
-    const titleY = 444 * scale
-    const titleFont = `700 ${titleFontSize}px ${fontFamily}`
-
-    // Subtitle dimensions (74.6667px at 1920 width, bold)
-    const subtitleFontSize = 75 * scale
-    const subtitleLineHeight = subtitleFontSize * 1.1
-    const subtitleFont = `700 ${subtitleFontSize}px ${fontFamily}`
-
-    // Logos in white circles (match template: stacked, always fits)
-    const logoCount = selectedLogos.length
-    const desiredLogoCenterX = width - (376 * scale)
-    const logoRightMargin = 55 * scale
-    const logoEdgeMarginY = 55 * scale
-    // Note: 3-logo layouts use a slightly smaller vertical gap to compensate for the
-    // horizontal staggering applied below. This keeps the overall logo stack visually
-    // compact, but means spacing will change when switching between 2 and 3 logos.
-    const logoGap = (logoCount === 3 ? 18 : 24) * scale
-
-    let logoCircleRadius = 205 * scale
-    let logoSpacing = 0
-    let logoStartY = height * 0.48
-    let logoBaseX = desiredLogoCenterX
-    let logoStaggerX = 0
-
-    if (logoCount > 1) {
-      const maxStackHeight = Math.max(0, height - (2 * logoEdgeMarginY))
-      const fitRadius = (maxStackHeight - ((logoCount - 1) * logoGap)) / (2 * logoCount)
-
-      // Prefer larger circles; shrink only when required to fit.
-      logoCircleRadius = Math.min(205 * scale, fitRadius)
-      logoSpacing = (logoCircleRadius * 2) + logoGap
-
-      const stackHeight = (logoCount * 2 * logoCircleRadius) + ((logoCount - 1) * logoGap)
-      const stackTop = Math.max(logoEdgeMarginY, (height - stackHeight) / 2)
-      logoStartY = stackTop + logoCircleRadius
-
-      // For 3 logos, stagger the middle circle slightly to the right.
-      if (logoCount === 3) {
-        logoStaggerX = logoCircleRadius * 0.55
-      }
-
-      // Keep the rightmost circle inside the canvas.
-      logoBaseX = desiredLogoCenterX - (logoStaggerX / 2)
-      const maxBaseX = width - logoRightMargin - logoCircleRadius - logoStaggerX
-      logoBaseX = Math.min(logoBaseX, maxBaseX)
-    }
-
-    // Constrain text width to left half when logos or image layouts exist.
-    const hasRightSideContent = selectedLogos.length > 0 || (imageLayout !== 'none' && uploadedImage)
-    const textRightBoundary = hasRightSideContent ? (width / 2) : (width - edgeMarginX)
-    const textMaxWidth = Math.max(0, textRightBoundary - titleX)
-
-    const titleLines = wrapTextToWidth(title, textMaxWidth, textCtx, titleFont)
-    const subtitleLines = wrapTextToWidth(subtitle, textMaxWidth, textCtx, subtitleFont)
-
-    // Subtitle is bottom-aligned with the same margin as the pill from the top.
-    // This calculation positions the first line's baseline at the calculated y-position,
-    // with additional lines stacked above it using the line height.
-    const subtitleBottomBaselineY = height - edgeMarginY
-    const subtitleY = subtitleBottomBaselineY - Math.max(0, (subtitleLines.length - 1) * subtitleLineHeight)
-
-    // Generate a unique ID prefix to avoid clipPath collisions when multiple SVGs are on the page
-    const uniqueId = `svg-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
-
-    return `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-        <!-- Background -->
-        ${selectedBackground ? `<image href="${bgUrl}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice"/>` : `<rect width="${width}" height="${height}" fill="#1a1a2e"/>`}
-        
-        <!-- Pill/Badge -->
-        ${pill ? `
-          <g>
-            <rect x="${pillX}" y="${pillY}" width="${pillWidth}" height="${pillHeight}" rx="${pillRadius}" fill="${pillBgColor}"/>
-            <text x="${pillX + pillWidth / 2}" y="${pillY + pillHeight / 2 + pillFontSize * 0.35}" font-family="${fontFamily}" font-size="${pillFontSize}" font-weight="600" fill="${variant === 'dark' ? '#000000' : '#ffffff'}" text-anchor="middle">${escapeXml(pill)}</text>
-          </g>
-        ` : ''}
-        
-        <!-- Title -->
-        ${title ? `
-          <text x="${titleX}" y="${titleY}" font-family="${fontFamily}" font-size="${titleFontSize}" font-weight="700" fill="${textColor}" style="line-height:1.1">
-            ${titleLines.map((line, i) =>
-      `<tspan x="${titleX}" dy="${i === 0 ? 0 : titleLineHeight}">${escapeXml(line)}</tspan>`
-    ).join('')}
-          </text>
-        ` : ''}
-        
-        <!-- Subtitle -->
-        ${subtitle ? `
-          <text x="${titleX}" y="${subtitleY}" font-family="${fontFamily}" font-size="${subtitleFontSize}" font-weight="700" fill="${textColor}" style="line-height:1.1">
-            ${subtitleLines.map((line, i) =>
-      `<tspan x="${titleX}" dy="${i === 0 ? 0 : subtitleLineHeight}">${escapeXml(line)}</tspan>`
-    ).join('')}
-          </text>
-        ` : ''}
-        
-        <!-- Logos in white circles -->
-        ${selectedLogos.map((logo, i) => {
-      const y = logoCount > 1 ? (logoStartY + i * logoSpacing) : (height * 0.48)
-      const x = logoCount === 3 && i === 1 ? (logoBaseX + logoStaggerX) : logoBaseX
-      const logoUrl = logo.isUploaded ? logo.dataUrl : logo.url
-      const logoClipRadius = logoCircleRadius * 0.9
-      // Size image so a square logo fits entirely within the circular clip.
-      // The 0.98 factor adds a small safety margin so square logo corners don't touch the circular clip boundary.
-      const logoSize = logoClipRadius * Math.SQRT2 * 0.98
-      return `
-            <g transform="translate(${x}, ${y})">
-              <circle cx="0" cy="0" r="${logoCircleRadius}" fill="white" filter="url(#${uniqueId}-shadow)"/>
-              <clipPath id="${uniqueId}-logo-clip-${i}">
-                <circle cx="0" cy="0" r="${logoClipRadius}"/>
-              </clipPath>
-              <image href="${logoUrl}" x="${-logoSize / 2}" y="${-logoSize / 2}" width="${logoSize}" height="${logoSize}" clip-path="url(#${uniqueId}-logo-clip-${i})" preserveAspectRatio="xMidYMid meet"/>
-            </g>
-          `
-    }).join('')}
-        
-        <!-- Image Layout -->
-        ${(() => {
-        if (imageLayout === 'none' || !uploadedImage) return ''
-        const imgUrl = uploadedImage.dataUrl
-
-        if (imageLayout === 'circle') {
-          // Circle image layout - positioned in lower-right corner, bleeding off the edge
-          const circleCenterX = width * CIRCLE_CENTER_X_RATIO
-          const circleCenterY = height * CIRCLE_CENTER_Y_RATIO
-          const circleRadius = width * CIRCLE_RADIUS_RATIO
-          return `
-          <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius}" fill="white" filter="url(#${uniqueId}-image-shadow)"/>
-          <image href="${imgUrl}" x="${circleCenterX - circleRadius}" y="${circleCenterY - circleRadius}" width="${circleRadius * 2}" height="${circleRadius * 2}" clip-path="url(#${uniqueId}-circle-clip)" preserveAspectRatio="xMidYMid slice"/>
-        `
-        }
-
-        if (imageLayout === 'split') {
-          // Split image layout - diagonal clip from top-right to bottom
-          const splitBottomX = SPLIT_CLIP_BOTTOM_X_BASE * scale
-          return `
-          <image href="${imgUrl}" x="${splitBottomX}" y="0" width="${width - splitBottomX}" height="${height}" clip-path="url(#${uniqueId}-split-clip)" preserveAspectRatio="xMidYMid slice"/>
-        `
-        }
-
-        if (imageLayout === 'overlay') {
-          // Overlay image layout - rectangular image on the right side with drop shadow
-          const rectX = OVERLAY_RECT_X_BASE * scale
-          const rectY = OVERLAY_RECT_Y_BASE * scale
-          const rectWidth = OVERLAY_RECT_WIDTH_BASE * scale
-          const rectHeight = OVERLAY_RECT_HEIGHT_BASE * scale
-          return `
-          <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="white" filter="url(#${uniqueId}-image-shadow)"/>
-          <image href="${imgUrl}" x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" preserveAspectRatio="xMidYMid slice"/>
-        `
-        }
-
-        return ''
-      })()}
-        
-        <!-- Filters and clip paths -->
-        <defs>
-          <filter id="${uniqueId}-shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="2" stdDeviation="8" flood-opacity="0.15"/>
-          </filter>
-          <filter id="${uniqueId}-image-shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="-6" dy="-6" stdDeviation="25" flood-opacity="0.3"/>
-          </filter>
-          ${imageLayout === 'circle' && uploadedImage ? `
-            <clipPath id="${uniqueId}-circle-clip">
-              <circle cx="${width * CIRCLE_CENTER_X_RATIO}" cy="${height * CIRCLE_CENTER_Y_RATIO}" r="${width * CIRCLE_RADIUS_RATIO}"/>
-            </clipPath>
-          ` : ''}
-          ${imageLayout === 'split' && uploadedImage ? `
-            <clipPath id="${uniqueId}-split-clip">
-              <path d="M ${SPLIT_CLIP_TOP_X_BASE * scale},0 L ${SPLIT_CLIP_BOTTOM_X_BASE * scale},${height} L ${width},${height} L ${width},0 Z"/>
-            </clipPath>
-          ` : ''}
-        </defs>
-      </svg>
-    `
-  }, [resolution, selectedBackground, title, subtitle, pill, selectedLogos, textColor, variant, pillBgColor, imageLayout, uploadedImage])
-
-  // Export as raster (JPG/PNG/WEBP)
-  const exportRaster = useCallback(async () => {
-    const [width, height] = parseResolution(resolution)
-    const svgString = generateSvg()
-
-    // Check for WebP support if WebP format is selected
-    const format = (exportFormat || 'jpg').toLowerCase()
-    if (format === 'webp') {
-      const canvas = document.createElement('canvas')
-      const isWebPSupported = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0
-      if (!isWebPSupported) {
-        showToast('WebP format is not supported in this browser. Try JPG or PNG instead.', 'error')
-        return
-      }
-    }
-
-    try {
-      const inlinedSvg = await inlineSvgImages(svgString)
-
-      const mimeType = format === 'png' ? 'image/png' : (format === 'webp' ? 'image/webp' : 'image/jpeg')
-      const extension = format === 'png' ? 'png' : (format === 'webp' ? 'webp' : 'jpg')
-      const quality = mimeType === 'image/png' ? undefined : 0.92
-
-      // Create a canvas
-      const canvas = document.createElement('canvas')
-      canvas.width = width
-      canvas.height = height
-      const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('Failed to get canvas context')
-
-      // Create image from SVG
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      const svgBlob = new Blob([inlinedSvg], { type: 'image/svg+xml;charset=utf-8' })
-      const url = URL.createObjectURL(svgBlob)
-
-      await new Promise((resolve, reject) => {
-        img.onload = resolve
-        img.onerror = () => reject(new Error('Failed to load SVG image'))
-        img.src = url
-      })
-
-      // Image is loaded and ready to draw
-      ctx.drawImage(img, 0, 0, width, height)
-
-      // Convert to image and download
-      canvas.toBlob((blob) => {
-        // Revoke the object URL after the canvas has been fully processed
-        URL.revokeObjectURL(url)
-
-        if (!blob) {
-          showToast('Export failed. Try SVG export instead.', 'error')
-          return
-        }
-        const downloadUrl = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = downloadUrl
-        a.download = `thumbnail-${Date.now()}.${extension}`
-        a.click()
-        URL.revokeObjectURL(downloadUrl)
-        showToast(`${extension.toUpperCase()} exported successfully!`)
-      }, mimeType, quality)
-    } catch (err) {
-      console.error('Export failed:', err)
-      showToast('Export failed. Try SVG export instead.', 'error')
-    }
-  }, [resolution, generateSvg, showToast, exportFormat])
-
-  // Export as SVG
-  const exportSvg = useCallback(() => {
-    const svgString = generateSvg()
-    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `thumbnail-${Date.now()}.svg`
-    a.click()
-    URL.revokeObjectURL(url)
-    showToast('SVG exported successfully!')
-  }, [generateSvg, showToast])
-
-  // Get all logos (library + uploaded)
-  const allSelectedLogos = [...selectedLogos]
+  const handleExportRaster = useCallback(() => {
+    exportRaster(exportFormat)
+  }, [exportRaster, exportFormat])
 
   const [previewWidth, previewHeight] = parseResolution(resolution)
+
+  // Render field based on type
+  const renderField = (field) => {
+    const value = fieldValues[field.id]
+
+    // Check showWhen condition
+    if (field.showWhen) {
+      const conditionValue = fieldValues[field.showWhen.field]
+      if (field.showWhen.notEquals && conditionValue === field.showWhen.notEquals) {
+        return null
+      }
+      if (field.showWhen.equals && conditionValue !== field.showWhen.equals) {
+        return null
+      }
+    }
+
+    switch (field.type) {
+      case FIELD_TYPES.TEXT:
+        return (
+          <div key={field.id} className="control-group">
+            <label htmlFor={`field-${field.id}`}>{field.label}</label>
+            <input
+              type="text"
+              id={`field-${field.id}`}
+              value={value || ''}
+              onChange={(e) => handleFieldChange(field.id, e.target.value)}
+              placeholder={field.placeholder}
+              maxLength={field.maxLength}
+            />
+            {field.helperText && <small className="helper-text">{field.helperText}</small>}
+          </div>
+        )
+
+      case FIELD_TYPES.SELECT:
+        return (
+          <div key={field.id} className="control-group">
+            <label htmlFor={`field-${field.id}`}>{field.label}</label>
+            {field.helperText && <small className="helper-text" style={{ marginBottom: 'var(--spacing-xs)' }}>{field.helperText}</small>}
+            <select
+              id={`field-${field.id}`}
+              value={value || field.defaultValue}
+              onChange={(e) => {
+                handleFieldChange(field.id, e.target.value)
+                // Handle mutual exclusivity for image layout
+                if (field.id === 'imageLayout' && e.target.value !== 'none') {
+                  handleFieldChange('logos', [])
+                } else if (field.id === 'imageLayout' && e.target.value === 'none') {
+                  handleFieldChange('layoutImage', null)
+                }
+              }}
+            >
+              {field.options.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+        )
+
+      case FIELD_TYPES.IMAGE:
+        return (
+          <ImageField
+            key={field.id}
+            label={field.label}
+            value={value}
+            onChange={(v) => handleFieldChange(field.id, v)}
+            helperText={field.helperText}
+          />
+        )
+
+      case FIELD_TYPES.IMAGE_ARRAY: {
+        const maxItems = field.dynamicMaxItems
+          ? parseInt(fieldValues[field.dynamicMaxItems.field], 10) || field.maxItems
+          : field.maxItems
+        return (
+          <ImageArrayField
+            key={field.id}
+            label={field.label}
+            value={value || []}
+            onChange={(v) => handleFieldChange(field.id, v)}
+            maxItems={maxItems}
+            helperText={field.helperText}
+          />
+        )
+      }
+
+      case FIELD_TYPES.LOGO_ARRAY:
+        return (
+          <LogoArrayField
+            key={field.id}
+            label={field.label}
+            value={value || []}
+            onChange={(v) => {
+              handleFieldChange(field.id, v)
+              // Clear image layout when adding logos
+              if (v.length > 0) {
+                handleFieldChange('imageLayout', 'none')
+                handleFieldChange('layoutImage', null)
+              }
+            }}
+            maxItems={field.maxItems}
+            availableLogos={discoveredLogos}
+            helperText={field.helperText}
+            showToast={showToast}
+          />
+        )
+
+      default:
+        return null
+    }
+  }
 
   return (
     <div className="container">
@@ -651,12 +316,20 @@ function App() {
       </nav>
 
       <header className="header">
-        <h1>Blog Thumbnail Generator</h1>
-        <p className="subtitle">Create consistent blog thumbnails for sharing</p>
+        <h1>Thumbnail Generator</h1>
+        <p className="subtitle">Create consistent thumbnails for blogs and shows</p>
       </header>
 
       <main className="editor">
         <section id="thumbnail-controls" className="controls" aria-label="Thumbnail settings">
+          {/* Template Selection - at the top */}
+          <TemplateSelector
+            selectedTemplateId={selectedTemplateId}
+            onTemplateChange={handleTemplateChangeWithBackgrounds}
+          />
+
+          <hr style={{ margin: 'var(--spacing-md) 0', border: 'none', borderTop: '1px solid var(--color-border)' }} />
+
           {/* Background Selection */}
           <div className="control-group">
             <label htmlFor="background-select">Background</label>
@@ -668,209 +341,34 @@ function App() {
                 setSelectedBackground(bg)
                 if (bg) setVariant(bg.variant)
               }}
-              aria-describedby="background-desc"
             >
               {backgrounds.map(bg => (
                 <option key={bg.id} value={bg.id}>{bg.name}</option>
               ))}
             </select>
-            <small id="background-desc" className="helper-text">Choose a background image</small>
           </div>
 
-          {/* Variant Selection */}
-          <div className="control-group">
-            <label htmlFor="variant-select">Text Variant</label>
-            <select
-              id="variant-select"
-              value={variant}
-              onChange={(e) => setVariant(e.target.value)}
-            >
-              <option value="dark">Light text (for dark backgrounds)</option>
-              <option value="light">Dark text (for light backgrounds)</option>
-            </select>
-          </div>
-
-          {/* Title Input */}
-          <div className="control-group">
-            <label htmlFor="title-input">Title</label>
-            <input
-              type="text"
-              id="title-input"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter your title"
-              maxLength={100}
-              aria-describedby="title-desc"
-            />
-            <small id="title-desc" className="helper-text">Main heading for your thumbnail</small>
-          </div>
-
-          {/* Subtitle Input */}
-          <div className="control-group">
-            <label htmlFor="subtitle-input">Subtitle (optional)</label>
-            <input
-              type="text"
-              id="subtitle-input"
-              value={subtitle}
-              onChange={(e) => setSubtitle(e.target.value)}
-              placeholder="Enter subtitle"
-              maxLength={150}
-            />
-          </div>
-
-          {/* Pill/Badge Input */}
-          <div className="control-group">
-            <label htmlFor="pill-input">Pill/Badge (optional)</label>
-            <input
-              type="text"
-              id="pill-input"
-              value={pill}
-              onChange={(e) => setPill(e.target.value)}
-              placeholder="e.g., Tutorial, Guide"
-              maxLength={30}
-            />
-          </div>
-
-          {/* Logo Selection */}
-          <div className="control-group">
-            <label>Logos (optional)</label>
-            <div className="logo-selector" role="group" aria-label="Select logos">
-              <div className="logo-options">
-                {logos.map(logo => (
-                  <button
-                    key={logo.id}
-                    type="button"
-                    className={`logo-option ${selectedLogos.some(l => l.id === logo.id) ? 'selected' : ''}`}
-                    onClick={() => toggleLogo(logo)}
-                    aria-pressed={selectedLogos.some(l => l.id === logo.id)}
-                    aria-label={`${logo.name} logo`}
-                  >
-                    <img src={logo.url} alt={logo.name} />
-                  </button>
-                ))}
-              </div>
-              <div className="selected-logos">
-                <span className="label">Selected:</span>
-                <div className="logo-preview-list">
-                  {allSelectedLogos.length === 0 ? (
-                    <span className="placeholder">None selected (max 3)</span>
-                  ) : (
-                    allSelectedLogos.map(logo => (
-                      <div key={logo.id} className="logo-preview-item">
-                        <img
-                          src={logo.isUploaded ? logo.dataUrl : logo.url}
-                          alt={logo.name}
-                        />
-                        <button
-                          type="button"
-                          className="remove-btn"
-                          onClick={() => removeLogo(logo.id)}
-                          aria-label={`Remove ${logo.name}`}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
+          {/* Variant Selection - only show for templates that use it */}
+          {selectedTemplateId === 'dotnet-blog' && (
+            <div className="control-group">
+              <label htmlFor="variant-select">Text Variant</label>
+              <select
+                id="variant-select"
+                value={variant}
+                onChange={(e) => setVariant(e.target.value)}
+              >
+                <option value="dark">Light text (for dark backgrounds)</option>
+                <option value="light">Dark text (for light backgrounds)</option>
+              </select>
             </div>
-            <div className="logo-upload">
-              <div className="upload-row">
-                <span id="logo-upload-desc" className="upload-label-text">Or upload your own:</span>
-                <input
-                  id="logo-upload-input"
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept="image/*"
-                  className="visually-hidden"
-                />
-                <button
-                  type="button"
-                  className="upload-button"
-                  aria-describedby="logo-upload-desc"
-                  aria-controls="logo-upload-input"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Choose File
-                </button>
-              </div>
-            </div>
-          </div>
+          )}
 
-          {/* Image Layout Selection */}
-          <div className="control-group">
-            <label htmlFor="image-layout-select">Image Layout (optional)</label>
-            <small className="helper-text" style={{ marginBottom: 'var(--spacing-xs)' }}>Note: Selecting an image layout will clear any selected logos</small>
-            <select
-              id="image-layout-select"
-              value={imageLayout}
-              onChange={(e) => handleImageLayoutChange(e.target.value)}
-              aria-describedby="image-layout-desc"
-            >
-              <option value="none">None</option>
-              <option value="circle">Circle</option>
-              <option value="split">Split</option>
-              <option value="overlay">Overlay</option>
-            </select>
-            <small id="image-layout-desc" className="helper-text">Choose how the image will be displayed</small>
+          <hr style={{ margin: 'var(--spacing-md) 0', border: 'none', borderTop: '1px solid var(--color-border)' }} />
 
-            {imageLayout !== 'none' && (
-              <div className="image-upload" style={{ marginTop: 'var(--spacing-sm)' }}>
-                <div className="upload-row">
-                  <span id="image-upload-desc" className="upload-label-text">Upload image:</span>
-                  <input
-                    id="image-upload-input"
-                    type="file"
-                    ref={imageFileInputRef}
-                    onChange={handleImageUpload}
-                    accept="image/*"
-                    className="visually-hidden"
-                  />
-                  <button
-                    type="button"
-                    className="upload-button"
-                    aria-describedby="image-upload-desc"
-                    aria-controls="image-upload-input"
-                    onClick={() => imageFileInputRef.current?.click()}
-                  >
-                    Choose File
-                  </button>
-                </div>
-                {uploadedImage && (
-                  <div className="image-preview" style={{ marginTop: 'var(--spacing-sm)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                    <img
-                      src={uploadedImage.dataUrl}
-                      alt="Uploaded"
-                      style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }}
-                    />
-                    <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>{uploadedImage.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => setUploadedImage(null)}
-                      style={{
-                        background: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '20px',
-                        height: '20px',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                      aria-label="Remove image"
-                    >
-                      ×
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          {/* Template-specific fields */}
+          {selectedTemplate?.fields.map(field => renderField(field))}
+
+          <hr style={{ margin: 'var(--spacing-md) 0', border: 'none', borderTop: '1px solid var(--color-border)' }} />
 
           {/* Resolution Selection */}
           <div className="control-group">
@@ -902,7 +400,7 @@ function App() {
 
           {/* Export Buttons */}
           <div className="export-actions">
-            <button type="button" className="btn btn-primary" onClick={exportRaster}>
+            <button type="button" className="btn btn-primary" onClick={handleExportRaster}>
               Export as {(exportFormat || 'jpg').toUpperCase()}
             </button>
             <button type="button" className="btn btn-secondary" onClick={exportSvg}>
@@ -916,7 +414,6 @@ function App() {
           <h2 className="visually-hidden">Preview</h2>
           <div className="preview-container">
             <div
-              ref={previewRef}
               className="preview"
               style={{ '--preview-aspect': `${previewWidth} / ${previewHeight}` }}
               dangerouslySetInnerHTML={{ __html: generateSvg() }}
@@ -926,8 +423,8 @@ function App() {
           <aside className="preview-help" aria-label="Instructions">
             <h3 className="preview-help-title">Quick tips</h3>
             <ul className="preview-help-list">
-              <li>Pick a background and add title/subtitle/pill text.</li>
-              <li>Select up to 3 logos (or upload your own).</li>
+              <li>Select a layout template from the dropdown.</li>
+              <li>Choose a background and fill in the template fields.</li>
               <li>Choose an export resolution and format, then export.</li>
             </ul>
 
@@ -937,21 +434,9 @@ function App() {
                 href="https://github.com/jongalloway/thumbnail-generator"
                 target="_blank"
                 rel="noreferrer"
-                aria-label="More information or file an issue on GitHub"
-                title="More information or file an issue on GitHub"
               >
-                <svg
-                  className="github-icon"
-                  viewBox="0 0 16 16"
-                  width="16"
-                  height="16"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
-                  />
+                <svg className="github-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                  <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
                 </svg>
                 <span className="github-label">More info / file an issue</span>
               </a>
@@ -962,27 +447,15 @@ function App() {
 
       <footer className="footer">
         <p>
-          Blog Thumbnail Generator •{' '}
+          Thumbnail Generator •{' '}
           <a
             className="github-link"
             href="https://github.com/jongalloway/thumbnail-generator"
             target="_blank"
             rel="noreferrer"
-            aria-label="View source on GitHub"
-            title="View source on GitHub"
           >
-            <svg
-              className="github-icon"
-              viewBox="0 0 16 16"
-              width="16"
-              height="16"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                fill="currentColor"
-                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
-              />
+            <svg className="github-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
             </svg>
             <span className="github-label">GitHub</span>
           </a>

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1920"
+   height="1080"
+   viewBox="0 0 1920 1080"
+   version="1.1"
+   id="svg9"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="pillGradient"
+       x1="0%"
+       y1="0%"
+       x2="100%"
+       y2="0%">
+      <stop
+         offset="0%"
+         style="stop-color:#b53fc4;stop-opacity:1"
+         id="stop1" />
+      <stop
+         offset="100%"
+         style="stop-color:#226dd1;stop-opacity:1"
+         id="stop2" />
+    </linearGradient>
+    <clipPath
+       id="guest1Clip">
+      <circle
+         cx="1580"
+         cy="310"
+         r="90"
+         id="circle2" />
+    </clipPath>
+    <clipPath
+       id="guest2Clip">
+      <circle
+         cx="1520"
+         cy="500"
+         r="90"
+         id="circle3" />
+    </clipPath>
+    <clipPath
+       id="guest3Clip">
+      <circle
+         cx="1460"
+         cy="690"
+         r="90"
+         id="circle4" />
+    </clipPath>
+  </defs>
+  <!-- Background -->
+  <image
+     xlink:href="__BACKGROUND__"
+     x="0"
+     y="0"
+     width="1920"
+     height="1080"
+     preserveAspectRatio="xMidYMid slice"
+     id="image4" />
+  <!-- Pill Badge -->
+  <rect
+     x="50"
+     y="50"
+     width="550"
+     height="170"
+     rx="85"
+     ry="85"
+     fill="url(#pillGradient)"
+     id="rect4" />
+  <text
+     x="325"
+     y="115"
+     font-family="Segoe UI, sans-serif"
+     font-size="45"
+     font-weight="600"
+     fill="#ffffff"
+     text-anchor="middle"
+     id="text4a">
+    __PILL_LINE_1__
+  </text>
+  <text
+     x="325"
+     y="165"
+     font-family="Segoe UI, sans-serif"
+     font-size="45"
+     font-weight="600"
+     fill="#ffffff"
+     text-anchor="middle"
+     id="text4b">
+    __PILL_LINE_2__
+  </text>
+  <!-- Topic Text -->
+  <text
+     x="55"
+     y="355"
+     font-family="Segoe UI, sans-serif"
+     font-size="120"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="text5">
+    __TOPIC_LINE_1__
+  </text>
+  <text
+     x="55"
+     y="487"
+     font-family="Segoe UI, sans-serif"
+     font-size="120"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="text6">
+    __TOPIC_LINE_2__
+  </text>
+  <text
+     x="55"
+     y="619"
+     font-family="Segoe UI, sans-serif"
+     font-size="120"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="text7">
+    __TOPIC_LINE_3__
+  </text>
+  <path
+     style="fill:#bb03ec;stroke-width:8.22939;fill-opacity:0.5582329"
+     id="path9"
+     d="M 1648.5302,227.98497 A 187.19086,187.1908 0 0 1 1461.421,415.17575 187.19086,187.1908 0 0 1 1274.1486,228.14832 187.19086,187.1908 0 0 1 1461.0943,40.794335 187.19086,187.1908 0 0 1 1648.5299,227.65826" />
+  <!-- Guest 1 Circle (decorative border) -->
+  <!-- Guest 1 Image -->
+  <image
+     xlink:href="__GUEST_1__"
+     x="1490"
+     y="220"
+     width="180"
+     height="180"
+     clip-path="url(#guest1Clip)"
+     preserveAspectRatio="xMidYMid slice"
+     id="image7"
+     transform="matrix(2.0798983,0,0,2.0798978,-1825.9955,-417.67638)" />
+  <path
+     style="fill:#bb03ec;stroke-width:8.22939;fill-opacity:0.5582329"
+     id="path10"
+     d="M 1818.0312,546.87799 A 187.19086,187.1908 0 0 1 1630.922,734.06877 187.19086,187.1908 0 0 1 1443.6495,547.04134 187.19086,187.1908 0 0 1 1630.5953,359.68736 187.19086,187.1908 0 0 1 1818.0309,546.55129" />
+  <!-- Guest 2 Circle (decorative border) -->
+  <!-- Guest 2 Image -->
+  <image
+     xlink:href="__GUEST_2__"
+     x="1430"
+     y="410"
+     width="180"
+     height="180"
+     clip-path="url(#guest2Clip)"
+     preserveAspectRatio="xMidYMid slice"
+     id="image8"
+     transform="matrix(2.0798983,0,0,2.0798978,-1530.9013,-492.04644)" />
+  <path
+     style="fill:#bb03ec;stroke-width:8.22939;fill-opacity:0.5582329"
+     id="path11"
+     d="M 1652.215,847.18939 A 187.19086,187.1908 0 0 1 1465.1058,1034.3802 187.19086,187.1908 0 0 1 1277.8334,847.35274 187.19086,187.1908 0 0 1 1464.7791,659.99876 187.19086,187.1908 0 0 1 1652.2147,846.86269" />
+  <!-- Guest 3 Circle (decorative border) -->
+  <!-- Guest 3 Image -->
+  <image
+     xlink:href="__GUEST_3__"
+     x="1370"
+     y="600"
+     width="180"
+     height="180"
+     clip-path="url(#guest3Clip)"
+     preserveAspectRatio="xMidYMid slice"
+     id="image9"
+     transform="matrix(2.0798983,0,0,2.0798978,-1571.1243,-588.52531)" />
+</svg>
