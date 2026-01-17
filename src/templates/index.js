@@ -31,10 +31,7 @@ export const TEMPLATES = {
         id: 'dotnet-blog',
         name: '.NET Blog',
         description: 'Blog post thumbnails with title, subtitle, pill badge, and logos',
-        // Backgrounds folder - images will be auto-discovered from public/templates/dotnet-blog/backgrounds/
-        backgroundsFolder: 'templates/dotnet-blog/backgrounds',
-        // Use the shared backgrounds for now
-        useSharedBackgrounds: true,
+        // Backgrounds are auto-discovered from public/templates/dotnet-blog/backgrounds/
         fields: [
             {
                 id: 'pill',
@@ -98,8 +95,7 @@ export const TEMPLATES = {
         id: 'dotnet-community-standup',
         name: '.NET Community Standup',
         description: 'YouTube show thumbnails with episode topic and guest photos',
-        backgroundsFolder: 'templates/dotnet-community-standup',
-        useSharedBackgrounds: false,
+        // Backgrounds are auto-discovered from public/templates/dotnet-community-standup/backgrounds/
         fields: [
             {
                 id: 'pill',

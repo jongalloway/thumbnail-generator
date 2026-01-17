@@ -144,7 +144,7 @@ export function CommunityStandupTemplate({
         }
 
         return svg
-    }, [resolution, selectedBackground, pill, topic, guests, numGuests])
+    }, [resolution, selectedBackground, pill, topic, guests])
 
     return { generateSvg }
 }

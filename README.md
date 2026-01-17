@@ -62,7 +62,7 @@ Additional logos (Azure, Copilot, Visual Studio, NuGet, .NET) are available in t
 
 ## Example Templates
 
-The `examples/` directory contains reference SVG templates showing different layout styles:
+The `docs/examples/` directory contains reference SVG templates showing different layout styles:
 
 - `title-and-pill.svg` - Simple pill badge with title
 - `one-logo.svg`, `two-logos.svg`, `three-logos.svg` - Layouts with logo circles
@@ -74,10 +74,16 @@ The `examples/` directory contains reference SVG templates showing different lay
 
 ```text
 public/
-  backgrounds/        # Background images (auto-discovered)
   logos/              # Logo images (auto-discovered)
 
-examples/             # Reference SVG templates
+  templates/          # Per-template assets (auto-discovered)
+    dotnet-blog/
+      backgrounds/
+    dotnet-community-standup/
+      backgrounds/
+      *.svg           # SVG layout templates
+
+docs/examples/         # Reference SVG templates
 
 src/
   App.jsx             # Main React component

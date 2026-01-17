@@ -33,10 +33,10 @@ const discoveredLogos = Object.entries(logoModules).map(([path, url]) => {
   }
 })
 
-// Auto-discover shared backgrounds
-const backgroundModules = import.meta.glob('../public/backgrounds/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
+// Auto-discover shared backgrounds from /public/backgrounds/
+const sharedBackgroundModules = import.meta.glob('../public/backgrounds/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
 
-const discoveredBackgrounds = Object.entries(backgroundModules).map(([path, url]) => {
+const sharedBackgrounds = Object.entries(sharedBackgroundModules).map(([path, url]) => {
   const filename = path.split('/').pop()
   const name = filename.replace(/\.[^.]+$/, '')
   const displayName = name
@@ -53,30 +53,46 @@ const discoveredBackgrounds = Object.entries(backgroundModules).map(([path, url]
   }
 })
 
-// Auto-discover Community Standup backgrounds
-const standupBackgroundModules = import.meta.glob('../public/templates/dotnet-community-standup/*.{jpg,jpeg,png,webp}', { eager: true, query: '?url', import: 'default' })
+// Auto-discover template-specific backgrounds from /public/templates/{template-id}/backgrounds/
+const templateBackgroundModules = import.meta.glob('../public/templates/*/backgrounds/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
 
-const standupBackgrounds = Object.entries(standupBackgroundModules).map(([path, url]) => {
-  const filename = path.split('/').pop()
+// Group backgrounds by template ID
+const templateSpecificBackgrounds = {}
+Object.entries(templateBackgroundModules).forEach(([path, url]) => {
+  // Path format: ../public/templates/{template-id}/backgrounds/{filename}
+  const parts = path.split('/')
+  const templateId = parts[parts.indexOf('templates') + 1]
+  const filename = parts.pop()
   const name = filename.replace(/\.[^.]+$/, '')
   const displayName = name
     .split(/[-_]/)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
-  return {
+  const variant = name.toLowerCase().includes('light') ? 'light' : 'dark'
+
+  if (!templateSpecificBackgrounds[templateId]) {
+    templateSpecificBackgrounds[templateId] = []
+  }
+  templateSpecificBackgrounds[templateId].push({
     id: name.toLowerCase(),
     name: displayName,
     file: filename,
     url: url,
-    variant: 'light' // The standup background appears to be light-themed
-  }
+    variant: variant
+  })
 })
 
-// Map template IDs to their background sets
-const templateBackgrounds = {
-  'dotnet-blog': discoveredBackgrounds,
-  'dotnet-community-standup': standupBackgrounds.length > 0 ? standupBackgrounds : discoveredBackgrounds,
-}
+// Combine template-specific backgrounds with shared backgrounds for each template
+const templateBackgrounds = {}
+Object.keys(templateSpecificBackgrounds).forEach(templateId => {
+  templateBackgrounds[templateId] = [...templateSpecificBackgrounds[templateId], ...sharedBackgrounds]
+})
+// Ensure templates without specific backgrounds still get shared backgrounds
+getTemplateIds().forEach(templateId => {
+  if (!templateBackgrounds[templateId]) {
+    templateBackgrounds[templateId] = [...sharedBackgrounds]
+  }
+})
 
 // Template component mapping
 const templateComponents = {
@@ -107,13 +123,13 @@ function App() {
   const [fieldValues, setFieldValues] = useState(() => getDefaultValues(selectedTemplateId))
 
   // Background and export settings - restore background from localStorage if available
-  const backgrounds = useMemo(() => templateBackgrounds[selectedTemplateId] || discoveredBackgrounds, [selectedTemplateId])
+  const backgrounds = useMemo(() => templateBackgrounds[selectedTemplateId] || [], [selectedTemplateId])
   const [selectedBackground, setSelectedBackground] = useState(() => {
     const persistedBgId = persistedSettings.backgroundId
     const persistedTemplateId = persistedSettings.templateId
     // Only restore background if it's from the same template
     if (persistedBgId && persistedTemplateId === selectedTemplateId) {
-      const bgList = templateBackgrounds[selectedTemplateId] || discoveredBackgrounds
+      const bgList = templateBackgrounds[selectedTemplateId] || []
       const found = findBackgroundById(bgList, persistedBgId)
       if (found) return found
     }
@@ -147,7 +163,7 @@ function App() {
 
   // Handle template change - update backgrounds
   const handleTemplateChangeWithBackgrounds = useCallback((newTemplateId) => {
-    const newBackgrounds = templateBackgrounds[newTemplateId] || discoveredBackgrounds
+    const newBackgrounds = templateBackgrounds[newTemplateId] || []
     // Try to find a previously used background for this template
     const persisted = loadPersistedSettings()
     let newBackground = null
