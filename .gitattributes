@@ -1,0 +1,2 @@
+# Keep SVGs consistent across platforms (avoid CRLF churn on Windows)
+*.svg text eol=lf
