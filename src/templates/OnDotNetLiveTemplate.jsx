@@ -1,32 +1,11 @@
 import { useCallback, useRef } from 'react'
-import { escapeXml, parseResolution } from '../utils/svgUtils'
-import { replaceTokens, wrapTopicText } from '../utils/svgTemplateProcessor'
-
-/**
- * .NET Community Standup Template
- * 
- * Uses SVG template files from public/templates/dotnet-community-standup/
- * for layout definitions. Edit the SVG files directly to update positioning,
- * sizing, and styling without modifying this JSX file.
- * 
- * Template files:
- * - two-guests.svg: Layout for 2 guest photos
- * - three-guests.svg: Layout for 3 guest photos  
- * - four-guests.svg: Layout for 4 guest photos
- * 
- * Token format: __TOKEN_NAME__ (double underscores for Inkscape compatibility)
- * Supported tokens:
- * - __BACKGROUND__: Background image URL
- * - __PILL_LINE_1__, __PILL_LINE_2__: Pill/badge text (two lines, centered)
- * - __TOPIC_LINE_1__, __TOPIC_LINE_2__, __TOPIC_LINE_3__: Topic text lines
- * - __GUEST_1__, __GUEST_2__, __GUEST_3__, __GUEST_4__: Guest photo URLs
- */
+import { escapeXml, getTextMeasureContext, parseResolution, wrapTextToWidth } from '../utils/svgUtils'
+import { replaceTokens } from '../utils/svgTemplateProcessor'
 
 // Template paths for different guest counts
 const TEMPLATE_PATHS = {
-    2: '/thumbnail-generator/templates/dotnet-community-standup/two-guests.svg',
-    3: '/thumbnail-generator/templates/dotnet-community-standup/three-guests.svg',
-    4: '/thumbnail-generator/templates/dotnet-community-standup/four-guests.svg',
+    1: '/thumbnail-generator/templates/on-dotnet-live/on-dotnet-thumbnai-one-guest.svg',
+    2: '/thumbnail-generator/templates/on-dotnet-live/on-dotnet-thumbnai-two-guests.svg',
 }
 
 // Module-level cache for templates (synchronous access after loading)
@@ -44,7 +23,7 @@ const templateCache = {
         }
 
         this.loading[guestCount] = true
-        const path = TEMPLATE_PATHS[guestCount] || TEMPLATE_PATHS[3]
+        const path = TEMPLATE_PATHS[guestCount] || TEMPLATE_PATHS[1]
 
         fetch(path)
             .then(response => {
@@ -59,7 +38,7 @@ const templateCache = {
                 console.error(`Failed to load template for ${guestCount} guests:`, err)
                 this.loading[guestCount] = false
             })
-    }
+    },
 }
 
 // Pre-load all templates on module initialization
@@ -67,16 +46,23 @@ Object.keys(TEMPLATE_PATHS).forEach(count => {
     templateCache.load(parseInt(count, 10))
 })
 
-export function CommunityStandupTemplate({
+export function OnDotNetLiveTemplate({
     values,
-    selectedBackground,
     resolution,
 }) {
-    // Use same hooks as DotNetBlogTemplate to maintain consistent hook order
     const templateRef = useRef(null)
 
-    const { pillLine1 = '', topic = '', guestCount = '3', guests = [] } = values
-    const numGuests = parseInt(guestCount, 10) || 3
+    const {
+        title = '',
+        guestCount = '1',
+        guest1Name = '',
+        guest2Name = '',
+        day = '',
+        time = '',
+        guests = [],
+    } = values
+
+    const numGuests = Math.min(2, Math.max(1, parseInt(guestCount, 10) || 1))
 
     // Get cached template (synchronous - templates pre-loaded on module init)
     templateRef.current = templateCache.get(numGuests)
@@ -88,10 +74,8 @@ export function CommunityStandupTemplate({
 
     const generateSvg = useCallback(() => {
         const [width, height] = parseResolution(resolution)
-        const bgUrl = selectedBackground?.url || ''
         const templateContent = templateRef.current
 
-        // If template isn't loaded yet, return a loading placeholder
         if (!templateContent) {
             return `
                 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
@@ -103,36 +87,59 @@ export function CommunityStandupTemplate({
             `
         }
 
-        // Wrap topic text into lines (limit to ~18 chars per line to stay within 55% width)
-        const topicLines = wrapTopicText(topic, 18, 3)
-
-        // Build guest placeholder for empty slots
         const getGuestImage = (index) => {
             const guest = guests[index]
-            if (guest) {
-                return guest.dataUrl || guest.url || ''
-            }
+            if (guest) return guest.dataUrl || guest.url || ''
             return ''
         }
 
-        // Pill line 2 is fixed for Community Standup templates
-        const pillLine2 = 'COMMUNITY STANDUP'
+        const measureCtx = getTextMeasureContext()
+        const titleFont = '600 88px "Segoe UI"'
+        const titleMaxWidth = 924
+        const ellipsizeToWidth = (text, maxWidth) => {
+            if (!text || !measureCtx || !maxWidth || maxWidth <= 0) return text
 
-        // Create tokens for replacement
-        const tokens = {
-            BACKGROUND: bgUrl,
-            PILL_LINE_1: escapeXml(pillLine1),
-            PILL_LINE_2: escapeXml(pillLine2),
-            TOPIC_LINE_1: escapeXml(topicLines[0] || ''),
-            TOPIC_LINE_2: escapeXml(topicLines[1] || ''),
-            TOPIC_LINE_3: escapeXml(topicLines[2] || ''),
-            GUEST_1: getGuestImage(0),
-            GUEST_2: getGuestImage(1),
-            GUEST_3: getGuestImage(2),
-            GUEST_4: getGuestImage(3),
+            measureCtx.font = titleFont
+            if (measureCtx.measureText(text).width <= maxWidth) return text
+
+            const ellipsis = '…'
+            const trimmed = text.trim()
+            let low = 0
+            let high = trimmed.length
+
+            while (low < high) {
+                const mid = Math.ceil((low + high) / 2)
+                const candidate = trimmed.slice(0, mid).trimEnd() + ellipsis
+                if (measureCtx.measureText(candidate).width <= maxWidth) {
+                    low = mid
+                } else {
+                    high = mid - 1
+                }
+            }
+
+            const finalCandidate = trimmed.slice(0, low).trimEnd() + ellipsis
+            return finalCandidate
         }
 
-        // Replace tokens in the template
+        const wrappedTitleLines = wrapTextToWidth(String(title || '').trim(), titleMaxWidth, measureCtx, titleFont)
+        const titleLine1 = wrappedTitleLines[0] || ''
+        const titleLine2 = wrappedTitleLines[1] || ''
+        const titleLine3Raw = wrappedTitleLines.length > 2 ? wrappedTitleLines.slice(2).join(' ') : ''
+        const titleLine3 = titleLine3Raw ? ellipsizeToWidth(titleLine3Raw, titleMaxWidth) : ''
+
+        const tokens = {
+            TITLE: escapeXml(title),
+            TITLE_LINE_1: escapeXml(titleLine1),
+            TITLE_LINE_2: escapeXml(titleLine2),
+            TITLE_LINE_3: escapeXml(titleLine3),
+            GUEST_1_NAME: escapeXml(guest1Name),
+            GUEST_2_NAME: escapeXml(guest2Name),
+            DAY: escapeXml(day),
+            TIME: escapeXml(time),
+            GUEST_1: getGuestImage(0),
+            GUEST_2: getGuestImage(1),
+        }
+
         let svg = replaceTokens(templateContent, tokens)
 
         // Scale the SVG if resolution differs from template's 1920x1080
@@ -142,9 +149,9 @@ export function CommunityStandupTemplate({
         }
 
         return svg
-    }, [resolution, selectedBackground, pillLine1, topic, guests])
+    }, [resolution, title, guest1Name, guest2Name, day, time, guests])
 
     return { generateSvg }
 }
 
-export default CommunityStandupTemplate
+export default OnDotNetLiveTemplate

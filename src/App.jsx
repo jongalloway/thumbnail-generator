@@ -5,6 +5,7 @@ import './App.css'
 import { TEMPLATES, getTemplate, getDefaultValues, getTemplateIds, FIELD_TYPES } from './templates'
 import { DotNetBlogTemplate } from './templates/DotNetBlogTemplate'
 import { CommunityStandupTemplate } from './templates/CommunityStandupTemplate'
+import { OnDotNetLiveTemplate } from './templates/OnDotNetLiveTemplate'
 
 // Components
 import { TemplateSelector, ImageArrayField, ImageField, LogoArrayField } from './components'
@@ -98,6 +99,7 @@ getTemplateIds().forEach(templateId => {
 const templateComponents = {
   'dotnet-blog': DotNetBlogTemplate,
   'dotnet-community-standup': CommunityStandupTemplate,
+  'on-dotnet-live': OnDotNetLiveTemplate,
 }
 
 // Helper to find a background by ID from a backgrounds array
