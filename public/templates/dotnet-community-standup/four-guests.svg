@@ -4,67 +4,209 @@
    height="1080"
    viewBox="0 0 1920 1080"
    version="1.1"
+   id="svg12"
    xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="pillGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#b53fc4;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#226dd1;stop-opacity:1" />
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs5">
+    <linearGradient
+       id="pillGradient"
+       x1="0%"
+       y1="0%"
+       x2="100%"
+       y2="0%">
+      <stop
+         offset="0%"
+         style="stop-color:#b53fc4;stop-opacity:1"
+         id="stop1" />
+      <stop
+         offset="100%"
+         style="stop-color:#226dd1;stop-opacity:1"
+         id="stop2" />
     </linearGradient>
-    <clipPath id="guest1Clip">
-      <circle cx="1353" cy="260" r="187" />
+    <clipPath
+       id="guest1Clip">
+      <circle
+         cx="1353"
+         cy="260"
+         r="187"
+         id="circle2" />
     </clipPath>
-    <clipPath id="guest2Clip">
-      <circle cx="1651" cy="447" r="187" />
+    <clipPath
+       id="guest2Clip">
+      <circle
+         cx="1651"
+         cy="447"
+         r="187"
+         id="circle3" />
     </clipPath>
-    <clipPath id="guest3Clip">
-      <circle cx="1350" cy="650" r="187" />
+    <clipPath
+       id="guest3Clip">
+      <circle
+         cx="1350"
+         cy="650"
+         r="187"
+         id="circle4" />
     </clipPath>
-    <clipPath id="guest4Clip">
-      <circle cx="1643" cy="855" r="187" />
+    <clipPath
+       id="guest4Clip">
+      <circle
+         cx="1643"
+         cy="855"
+         r="187"
+         id="circle5" />
     </clipPath>
   </defs>
-  
   <!-- Background -->
-  <image xlink:href="__BACKGROUND__" x="0" y="0" width="1920" height="1080" preserveAspectRatio="xMidYMid slice" />
-  
+  <image
+     xlink:href="__BACKGROUND__"
+     x="0"
+     y="0"
+     width="1920"
+     height="1080"
+     preserveAspectRatio="xMidYMid slice"
+     id="image5" />
   <!-- Pill Badge -->
-  <rect x="50" y="50" width="550" height="170" rx="85" ry="85" fill="url(#pillGradient)" />
-  <text x="325" y="115" font-family="Segoe UI, sans-serif" font-size="45" font-weight="600" fill="#ffffff" text-anchor="middle">
+  <rect
+     x="50"
+     y="50"
+     width="550"
+     height="170"
+     rx="85"
+     ry="85"
+     fill="url(#pillGradient)"
+     id="rect5" />
+  <text
+     x="325"
+     y="115"
+     font-family="Segoe UI, sans-serif"
+     font-size="45"
+     font-weight="600"
+     fill="#ffffff"
+     text-anchor="middle"
+     id="text5">
     __PILL_LINE_1__
   </text>
-  <text x="325" y="165" font-family="Segoe UI, sans-serif" font-size="45" font-weight="600" fill="#ffffff" text-anchor="middle">
+  <text
+     x="325"
+     y="165"
+     font-family="Segoe UI, sans-serif"
+     font-size="45"
+     font-weight="600"
+     fill="#ffffff"
+     text-anchor="middle"
+     id="text6">
     __PILL_LINE_2__
   </text>
-  
   <!-- Topic Text (width limited to ~55% to avoid photo overlap) -->
-  <text x="55" y="355" font-family="Segoe UI, sans-serif" font-size="120" font-weight="700" fill="#0f0f0f">
+  <text
+     x="55"
+     y="355"
+     font-family="Segoe UI, sans-serif"
+     font-size="120"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="text7">
     __TOPIC_LINE_1__
   </text>
-  <text x="55" y="487" font-family="Segoe UI, sans-serif" font-size="120" font-weight="700" fill="#0f0f0f">
+  <text
+     x="55"
+     y="487"
+     font-family="Segoe UI, sans-serif"
+     font-size="120"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="text8">
     __TOPIC_LINE_2__
   </text>
-  <text x="55" y="619" font-family="Segoe UI, sans-serif" font-size="120" font-weight="700" fill="#0f0f0f">
+  <text
+     x="55"
+     y="619"
+     font-family="Segoe UI, sans-serif"
+     font-size="120"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="text9">
     __TOPIC_LINE_3__
   </text>
-  
   <!-- Guest 1 Circle (top-left of zigzag) -->
-  <circle cx="1353" cy="260" r="187" fill="rgba(187, 3, 236, 0.56)" />
   <!-- Guest 1 Image -->
-  <image xlink:href="__GUEST_1__" x="1166" y="73" width="374" height="374" clip-path="url(#guest1Clip)" preserveAspectRatio="xMidYMid slice" />
-  
+  <circle
+     cx="1328.8987"
+     cy="235.89867"
+     r="211.10133"
+     fill="rgba(187, 3, 236, 0.56)"
+     id="circle9"
+     style="stroke-width:1.12888" />
+  <image
+     xlink:href="__GUEST_1__"
+     x="1166"
+     y="73"
+     width="374"
+     height="374"
+     clip-path="url(#guest1Clip)"
+     preserveAspectRatio="xMidYMid slice"
+     id="image9"
+     transform="matrix(1.1288841,0,0,1.1288841,-198.48152,-57.611193)" />
   <!-- Guest 2 Circle (top-right of zigzag) -->
-  <circle cx="1651" cy="447" r="187" fill="rgba(187, 3, 236, 0.56)" />
   <!-- Guest 2 Image -->
-  <image xlink:href="__GUEST_2__" x="1464" y="260" width="374" height="374" clip-path="url(#guest2Clip)" preserveAspectRatio="xMidYMid slice" />
-  
+  <ellipse
+     cx="1678.3583"
+     cy="417.03619"
+     fill="rgba(187, 3, 236, 0.56)"
+     id="circle10"
+     rx="211.10135"
+     ry="211.10133"
+     style="stroke-width:1.12888" />
+  <image
+     xlink:href="__GUEST_2__"
+     x="1464"
+     y="260"
+     width="374"
+     height="374"
+     clip-path="url(#guest2Clip)"
+     preserveAspectRatio="xMidYMid slice"
+     id="image10"
+     transform="matrix(1.1288842,0,0,1.1288841,-185.42959,-87.575005)" />
   <!-- Guest 3 Circle (bottom-left of zigzag) -->
-  <circle cx="1350" cy="650" r="187" fill="rgba(187, 3, 236, 0.56)" />
   <!-- Guest 3 Image -->
-  <image xlink:href="__GUEST_3__" x="1163" y="463" width="374" height="374" clip-path="url(#guest3Clip)" preserveAspectRatio="xMidYMid slice" />
-  
+  <ellipse
+     cx="1322.6417"
+     cy="638.27502"
+     fill="rgba(187, 3, 236, 0.56)"
+     id="circle11"
+     rx="211.10135"
+     ry="211.10133"
+     style="stroke-width:1.12888" />
+  <image
+     xlink:href="__GUEST_3__"
+     x="1163"
+     y="463"
+     width="374"
+     height="374"
+     clip-path="url(#guest3Clip)"
+     preserveAspectRatio="xMidYMid slice"
+     id="image11"
+     transform="matrix(1.1288842,0,0,1.1288841,-201.35196,-95.499636)" />
   <!-- Guest 4 Circle (bottom-right of zigzag) -->
-  <circle cx="1643" cy="855" r="187" fill="rgba(187, 3, 236, 0.56)" />
   <!-- Guest 4 Image -->
-  <image xlink:href="__GUEST_4__" x="1456" y="668" width="374" height="374" clip-path="url(#guest4Clip)" preserveAspectRatio="xMidYMid slice" />
+  <ellipse
+     cx="1671.661"
+     cy="830.24731"
+     fill="rgba(187, 3, 236, 0.56)"
+     id="circle12"
+     rx="211.10135"
+     ry="211.10133"
+     style="stroke-width:1.12888" />
+  <image
+     xlink:href="__GUEST_4__"
+     x="1456"
+     y="668"
+     width="374"
+     height="374"
+     clip-path="url(#guest4Clip)"
+     preserveAspectRatio="xMidYMid slice"
+     id="image12"
+     transform="matrix(1.1288842,0,0,1.1288841,-183.09574,-134.94862)" />
 </svg>
