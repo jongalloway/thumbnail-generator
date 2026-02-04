@@ -70,7 +70,7 @@
   <!-- Pill Badge -->
   <rect
      x="50"
-     y="50"
+     y="__PILL_Y__"
      width="550"
      height="170"
      rx="85"
@@ -79,7 +79,7 @@
      id="rect5" />
   <text
      x="325"
-     y="115"
+     y="__PILL_TEXT_1_Y__"
      font-family="Segoe UI, sans-serif"
      font-size="45"
      font-weight="600"
@@ -90,7 +90,7 @@
   </text>
   <text
      x="325"
-     y="165"
+     y="__PILL_TEXT_2_Y__"
      font-family="Segoe UI, sans-serif"
      font-size="45"
      font-weight="600"
@@ -102,7 +102,7 @@
   <!-- Topic Text (width limited to ~55% to avoid photo overlap) -->
   <text
      x="55"
-     y="355"
+     y="__TOPIC_LINE_1_Y__"
      font-family="Segoe UI, sans-serif"
      font-size="120"
      font-weight="700"
@@ -112,7 +112,7 @@
   </text>
   <text
      x="55"
-     y="487"
+     y="__TOPIC_LINE_2_Y__"
      font-family="Segoe UI, sans-serif"
      font-size="120"
      font-weight="700"
@@ -122,13 +122,34 @@
   </text>
   <text
      x="55"
-     y="619"
+     y="__TOPIC_LINE_3_Y__"
      font-family="Segoe UI, sans-serif"
      font-size="120"
      font-weight="700"
      fill="#0f0f0f"
      id="text9">
     __TOPIC_LINE_3__
+  </text>
+  <!-- Guest Names -->
+  <text
+     x="55"
+     y="890"
+     font-family="Segoe UI, sans-serif"
+     font-size="85"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="guestName1">
+    __GUEST_NAME_LINE_1__
+  </text>
+  <text
+     x="55"
+     y="990"
+     font-family="Segoe UI, sans-serif"
+     font-size="85"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="guestName2">
+    __GUEST_NAME_LINE_2__
   </text>
   <!-- Guest 1 Circle (top-left of zigzag) -->
   <!-- Guest 1 Image -->

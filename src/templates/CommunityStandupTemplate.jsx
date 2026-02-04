@@ -17,9 +17,15 @@ import { replaceTokens, wrapTopicText } from '../utils/svgTemplateProcessor'
  * Token format: __TOKEN_NAME__ (double underscores for Inkscape compatibility)
  * Supported tokens:
  * - __BACKGROUND__: Background image URL
+ * - __PILL_Y__, __PILL_TEXT_1_Y__, __PILL_TEXT_2_Y__: Pill position (shifts up when names present)
  * - __PILL_LINE_1__, __PILL_LINE_2__: Pill/badge text (two lines, centered)
+ * - __TOPIC_LINE_1_Y__, __TOPIC_LINE_2_Y__, __TOPIC_LINE_3_Y__: Topic Y positions
  * - __TOPIC_LINE_1__, __TOPIC_LINE_2__, __TOPIC_LINE_3__: Topic text lines
  * - __GUEST_1__, __GUEST_2__, __GUEST_3__, __GUEST_4__: Guest photo URLs
+ * - __GUEST_NAME_LINE_1__, __GUEST_NAME_LINE_2__: Guest names (two lines)
+ * 
+ * Guest names are entered in a single field, delimited by , or +
+ * When names are present, the pill and topic shift up to make room.
  */
 
 // Template paths for different guest counts
@@ -67,6 +73,39 @@ Object.keys(TEMPLATE_PATHS).forEach(count => {
     templateCache.load(parseInt(count, 10))
 })
 
+/**
+ * Parse guest names from input string
+ * Names can be delimited by , or +
+ * Returns an array of trimmed names
+ */
+function parseGuestNames(input) {
+    if (!input || !input.trim()) return []
+    // Split on comma or plus (with optional surrounding whitespace)
+    return input.split(/\s*[,+]\s*/).map(name => name.trim()).filter(Boolean)
+}
+
+/**
+ * Format guest names for display on two lines
+ * For 2+ guests: "with Name1 +" on line 1, remaining names on line 2
+ */
+function formatGuestNameLines(names) {
+    if (!names || names.length === 0) {
+        return { line1: '', line2: '' }
+    }
+
+    if (names.length === 1) {
+        return { line1: `with ${names[0]}`, line2: '' }
+    }
+
+    // First name on line 1 with "+"
+    const line1 = `with ${names[0]} +`
+
+    // Remaining names on line 2, joined with " + "
+    const line2 = names.slice(1).join(' + ')
+
+    return { line1, line2 }
+}
+
 export function CommunityStandupTemplate({
     values,
     selectedBackground,
@@ -75,8 +114,10 @@ export function CommunityStandupTemplate({
     // Use same hooks as DotNetBlogTemplate to maintain consistent hook order
     const templateRef = useRef(null)
 
-    const { pillLine1 = '', topic = '', guestCount = '3', guests = [] } = values
-    const numGuests = parseInt(guestCount, 10) || 3
+    const { pillLine1 = '', topic = '', guests = [], guestNames = '' } = values
+
+    // Auto-detect guest count from uploaded photos (clamp to 2-4)
+    const numGuests = Math.max(2, Math.min(4, guests.length || 2))
 
     // Get cached template (synchronous - templates pre-loaded on module init)
     templateRef.current = templateCache.get(numGuests)
@@ -103,6 +144,34 @@ export function CommunityStandupTemplate({
             `
         }
 
+        // Parse and format guest names
+        const parsedNames = parseGuestNames(guestNames)
+        const hasGuestNames = parsedNames.length > 0
+        const { line1: guestNameLine1, line2: guestNameLine2 } = formatGuestNameLines(parsedNames)
+
+        // Calculate Y positions based on whether guest names are present
+        // Without guest names: topic can be lower on the canvas (more centered)
+        // With guest names: shift pill and topic up to make room for names at bottom
+        let pillY, pillText1Y, pillText2Y, topicLine1Y, topicLine2Y, topicLine3Y
+
+        if (hasGuestNames) {
+            // Shifted up to make room for guest names at bottom
+            pillY = 50
+            pillText1Y = 115
+            pillText2Y = 165
+            topicLine1Y = 355
+            topicLine2Y = 487
+            topicLine3Y = 619
+        } else {
+            // No guest names - topic can be lower/more centered
+            pillY = 50
+            pillText1Y = 115
+            pillText2Y = 165
+            topicLine1Y = 380
+            topicLine2Y = 520
+            topicLine3Y = 660
+        }
+
         // Wrap topic text into lines (limit to ~18 chars per line to stay within 55% width)
         const topicLines = wrapTopicText(topic, 18, 3)
 
@@ -121,6 +190,14 @@ export function CommunityStandupTemplate({
         // Create tokens for replacement
         const tokens = {
             BACKGROUND: bgUrl,
+            // Position tokens
+            PILL_Y: pillY,
+            PILL_TEXT_1_Y: pillText1Y,
+            PILL_TEXT_2_Y: pillText2Y,
+            TOPIC_LINE_1_Y: topicLine1Y,
+            TOPIC_LINE_2_Y: topicLine2Y,
+            TOPIC_LINE_3_Y: topicLine3Y,
+            // Content tokens
             PILL_LINE_1: escapeXml(pillLine1),
             PILL_LINE_2: escapeXml(pillLine2),
             TOPIC_LINE_1: escapeXml(topicLines[0] || ''),
@@ -130,6 +207,8 @@ export function CommunityStandupTemplate({
             GUEST_2: getGuestImage(1),
             GUEST_3: getGuestImage(2),
             GUEST_4: getGuestImage(3),
+            GUEST_NAME_LINE_1: escapeXml(guestNameLine1),
+            GUEST_NAME_LINE_2: escapeXml(guestNameLine2),
         }
 
         // Replace tokens in the template
@@ -142,7 +221,7 @@ export function CommunityStandupTemplate({
         }
 
         return svg
-    }, [resolution, selectedBackground, pillLine1, topic, guests])
+    }, [resolution, selectedBackground, pillLine1, topic, guests, guestNames])
 
     return { generateSvg }
 }
