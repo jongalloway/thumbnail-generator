@@ -104,7 +104,7 @@
      x="55"
      y="__TOPIC_LINE_1_Y__"
      font-family="Segoe UI, sans-serif"
-     font-size="120"
+     font-size="__TOPIC_FONT_SIZE__"
      font-weight="700"
      fill="#0f0f0f"
      id="text7">
@@ -114,7 +114,7 @@
      x="55"
      y="__TOPIC_LINE_2_Y__"
      font-family="Segoe UI, sans-serif"
-     font-size="120"
+     font-size="__TOPIC_FONT_SIZE__"
      font-weight="700"
      fill="#0f0f0f"
      id="text8">
@@ -124,18 +124,28 @@
      x="55"
      y="__TOPIC_LINE_3_Y__"
      font-family="Segoe UI, sans-serif"
-     font-size="120"
+     font-size="__TOPIC_FONT_SIZE__"
      font-weight="700"
      fill="#0f0f0f"
      id="text9">
     __TOPIC_LINE_3__
   </text>
+  <text
+     x="55"
+     y="__TOPIC_LINE_4_Y__"
+     font-family="Segoe UI, sans-serif"
+     font-size="__TOPIC_FONT_SIZE__"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="text9b">
+    __TOPIC_LINE_4__
+  </text>
   <!-- Guest Names -->
   <text
      x="55"
-     y="890"
+     y="__GUEST_NAME_LINE_1_Y__"
      font-family="Segoe UI, sans-serif"
-     font-size="85"
+     font-size="__GUEST_NAME_FONT_SIZE__"
      font-weight="700"
      fill="#0f0f0f"
      id="guestName1">
@@ -143,13 +153,23 @@
   </text>
   <text
      x="55"
-     y="990"
+     y="__GUEST_NAME_LINE_2_Y__"
      font-family="Segoe UI, sans-serif"
-     font-size="85"
+     font-size="__GUEST_NAME_FONT_SIZE__"
      font-weight="700"
      fill="#0f0f0f"
      id="guestName2">
     __GUEST_NAME_LINE_2__
+  </text>
+  <text
+     x="55"
+     y="__GUEST_NAME_LINE_3_Y__"
+     font-family="Segoe UI, sans-serif"
+     font-size="__GUEST_NAME_FONT_SIZE__"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="guestName3">
+    __GUEST_NAME_LINE_3__
   </text>
   <!-- Guest 1 Circle (top-left of zigzag) -->
   <!-- Guest 1 Image -->
