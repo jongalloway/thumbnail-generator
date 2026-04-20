@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import './App.css'
 
 // Template system
@@ -102,6 +102,33 @@ const templateComponents = {
   'on-dotnet-live': OnDotNetLiveTemplate,
 }
 
+/**
+ * Wrapper component that calls the template hook inside its own component boundary.
+ * Using `key={selectedTemplateId}` on this component forces React to unmount/remount
+ * when the template changes, avoiding Rules of Hooks violations.
+ */
+function TemplateRenderer({ templateId, values, selectedBackground, variant, resolution, onGenerateSvg }) {
+  const TemplateComponent = templateComponents[templateId]
+  const { generateSvg } = TemplateComponent({ values, selectedBackground, variant, resolution })
+
+  // Keep parent's ref in sync with the latest generateSvg
+  const callbackRef = useRef(onGenerateSvg)
+  callbackRef.current = onGenerateSvg
+  useEffect(() => {
+    callbackRef.current(generateSvg)
+  }, [generateSvg])
+
+  const [previewWidth, previewHeight] = parseResolution(resolution)
+
+  return (
+    <div
+      className="preview"
+      style={{ '--preview-aspect': `${previewWidth} / ${previewHeight}` }}
+      dangerouslySetInnerHTML={{ __html: generateSvg() }}
+    />
+  )
+}
+
 // Helper to find a background by ID from a backgrounds array
 function findBackgroundById(backgrounds, id) {
   return backgrounds.find(bg => bg.id === id) || null
@@ -197,15 +224,10 @@ function App() {
     setFieldValues(prev => ({ ...prev, [fieldId]: value }))
   }, [])
 
-  // Get the template component and generate SVG
-  const TemplateComponent = templateComponents[selectedTemplateId]
-  const templateResult = TemplateComponent({
-    values: fieldValues,
-    selectedBackground,
-    variant,
-    resolution,
-  })
-  const generateSvg = templateResult.generateSvg
+  // Get the template's generateSvg function via the TemplateRenderer wrapper
+  const generateSvgRef = useRef(() => '')
+  const setGenerateSvg = useCallback((fn) => { generateSvgRef.current = fn }, [])
+  const generateSvg = useCallback(() => generateSvgRef.current(), [])
 
   // Export functionality
   const { exportRaster, exportSvg } = useExport(generateSvg, resolution, showToast)
@@ -213,8 +235,6 @@ function App() {
   const handleExportRaster = useCallback(() => {
     exportRaster(exportFormat)
   }, [exportRaster, exportFormat])
-
-  const [previewWidth, previewHeight] = parseResolution(resolution)
 
   // Render field based on type
   const renderField = (field) => {
@@ -431,10 +451,14 @@ function App() {
         <section id="thumbnail-preview" className="preview-section" aria-label="Thumbnail preview">
           <h2 className="visually-hidden">Preview</h2>
           <div className="preview-container">
-            <div
-              className="preview"
-              style={{ '--preview-aspect': `${previewWidth} / ${previewHeight}` }}
-              dangerouslySetInnerHTML={{ __html: generateSvg() }}
+            <TemplateRenderer
+              key={selectedTemplateId}
+              templateId={selectedTemplateId}
+              values={fieldValues}
+              selectedBackground={selectedBackground}
+              variant={variant}
+              resolution={resolution}
+              onGenerateSvg={setGenerateSvg}
             />
           </div>
 
