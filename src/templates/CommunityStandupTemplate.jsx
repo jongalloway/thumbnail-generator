@@ -97,34 +97,47 @@ function parseGuestNames(input) {
 
 /**
  * Format guest names for display on up to three lines
- * 1 guest: "with Name1" on line 1
- * 2 guests: "with Name1 +" on line 1, "Name2" on line 2
- * 3 guests: "with Name1 +" on line 1, "Name2 + Name3" on line 2
- * 4+ guests: "with Name1 +" on line 1, "Name2 + Name3 +" on line 2, remaining on line 3
+ * Wraps based on character count to prevent overflow.
+ * Segments ("with Name1 +", "Name2 +", "Name3") are kept intact
+ * and greedily packed onto lines within a character limit.
  */
-function formatGuestNameLines(names) {
+function formatGuestNameLines(names, maxCharsPerLine = 25) {
     if (!names || names.length === 0) {
         return { line1: '', line2: '', line3: '' }
     }
 
-    if (names.length === 1) {
-        return { line1: `with ${names[0]}`, line2: '', line3: '' }
+    // Build segments that keep each name intact with its delimiter
+    const segments = names.map((name, i) => {
+        if (i === 0) return `with ${name}` + (names.length > 1 ? ' +' : '')
+        if (i < names.length - 1) return `${name} +`
+        return name
+    })
+
+    // Greedily pack segments onto lines
+    const lines = []
+    let currentLine = ''
+
+    for (const segment of segments) {
+        const testLine = currentLine ? `${currentLine} ${segment}` : segment
+        if (testLine.length <= maxCharsPerLine || !currentLine) {
+            currentLine = testLine
+        } else {
+            lines.push(currentLine)
+            currentLine = segment
+        }
+    }
+    if (currentLine) lines.push(currentLine)
+
+    // Cap at 3 lines, joining overflow onto line 3
+    while (lines.length > 3) {
+        const overflow = lines.pop()
+        lines[lines.length - 1] += ` ${overflow}`
     }
 
-    if (names.length === 2) {
-        return { line1: `with ${names[0]} +`, line2: names[1], line3: '' }
-    }
+    // Pad to 3 lines
+    while (lines.length < 3) lines.push('')
 
-    if (names.length === 3) {
-        return { line1: `with ${names[0]} +`, line2: `${names[1]} + ${names[2]}`, line3: '' }
-    }
-
-    // 4+ guests: spread across 3 lines
-    const line1 = `with ${names[0]} +`
-    const line2 = `${names[1]} + ${names[2]} +`
-    const line3 = names.slice(3).join(' + ')
-
-    return { line1, line2, line3 }
+    return { line1: lines[0], line2: lines[1], line3: lines[2] }
 }
 
 export function CommunityStandupTemplate({
