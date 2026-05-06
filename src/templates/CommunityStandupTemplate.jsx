@@ -149,7 +149,7 @@ export function CommunityStandupTemplate({
     const templateRef = useRef(null)
     const [, setTemplateVersion] = useState(0)
 
-    const { pillLine1 = '', topic = '', guests = [], guestNames = '' } = values
+    const { showCommunityStandup = true, pillLine1 = '', topic = '', guests = [], guestNames = '' } = values
 
     // Auto-detect guest count from uploaded photos (clamp to 2-4)
     const numGuests = Math.max(2, Math.min(4, guests.length || 2))
@@ -260,13 +260,22 @@ export function CommunityStandupTemplate({
             return ''
         }
 
-        // Pill line 2 is fixed for Community Standup templates
-        const pillLine2 = 'COMMUNITY STANDUP'
+        // Pill line 2 is conditionally shown based on the checkbox
+        const pillLine2 = showCommunityStandup ? 'COMMUNITY STANDUP' : ''
+        const pillHeight = showCommunityStandup ? 170 : 100
+        const pillRy = pillHeight / 2
+
+        // When single-line pill, center text vertically in the shorter pill
+        if (!showCommunityStandup) {
+            pillText1Y = pillY + pillHeight / 2 + 15
+        }
 
         // Create tokens for replacement
         const tokens = {
             BACKGROUND: bgUrl,
             // Position tokens
+            PILL_HEIGHT: pillHeight,
+            PILL_RY: pillRy,
             PILL_Y: pillY,
             PILL_TEXT_1_Y: pillText1Y,
             PILL_TEXT_2_Y: pillText2Y,
@@ -305,7 +314,7 @@ export function CommunityStandupTemplate({
         }
 
         return svg
-    }, [resolution, selectedBackground, pillLine1, topic, guests, guestNames])
+    }, [resolution, selectedBackground, showCommunityStandup, pillLine1, topic, guests, guestNames])
 
     return { generateSvg }
 }

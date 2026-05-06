@@ -72,9 +72,9 @@
      x="50"
      y="__PILL_Y__"
      width="550"
-     height="170"
-     rx="85"
-     ry="85"
+     height="__PILL_HEIGHT__"
+     rx="__PILL_RY__"
+     ry="__PILL_RY__"
      fill="url(#pillGradient)"
      id="rect5" />
   <text
