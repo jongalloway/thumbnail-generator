@@ -78,7 +78,7 @@ export function useExport(generateSvg, resolution, showToast, title) {
             console.error('Export failed:', err)
             showToast('Export failed. Try SVG export instead.', 'error')
         }
-    }, [resolution, generateSvg, showToast])
+    }, [resolution, generateSvg, showToast, title])
 
     // Export as SVG
     const exportSvg = useCallback(() => {
@@ -91,13 +91,14 @@ export function useExport(generateSvg, resolution, showToast, title) {
         a.click()
         URL.revokeObjectURL(url)
         showToast('SVG exported successfully!')
-    }, [generateSvg, showToast])
+    }, [generateSvg, showToast, title])
 
     // Copy preview to clipboard as PNG
     const copyToClipboard = useCallback(async () => {
         const [width, height] = parseResolution(resolution)
         const svgString = generateSvg()
 
+        let url
         try {
             const inlinedSvg = await inlineSvgImages(svgString)
 
@@ -110,7 +111,7 @@ export function useExport(generateSvg, resolution, showToast, title) {
             const img = new Image()
             img.crossOrigin = 'anonymous'
             const svgBlob = new Blob([inlinedSvg], { type: 'image/svg+xml;charset=utf-8' })
-            const url = URL.createObjectURL(svgBlob)
+            url = URL.createObjectURL(svgBlob)
 
             await new Promise((resolve, reject) => {
                 img.onload = resolve
@@ -119,7 +120,6 @@ export function useExport(generateSvg, resolution, showToast, title) {
             })
 
             ctx.drawImage(img, 0, 0, width, height)
-            URL.revokeObjectURL(url)
 
             const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
             if (!blob) {
@@ -133,6 +133,8 @@ export function useExport(generateSvg, resolution, showToast, title) {
         } catch (err) {
             console.error('Copy to clipboard failed:', err)
             showToast('Failed to copy to clipboard.', 'error')
+        } finally {
+            if (url) URL.revokeObjectURL(url)
         }
     }, [resolution, generateSvg, showToast])
 
