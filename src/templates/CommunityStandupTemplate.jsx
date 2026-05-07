@@ -149,7 +149,7 @@ export function CommunityStandupTemplate({
     const templateRef = useRef(null)
     const [, setTemplateVersion] = useState(0)
 
-    const { pillLine1 = '', topic = '', guests = [], guestNames = '' } = values
+    const { pillLine1 = '', pillLine2 = '', topic = '', guests = [], guestNames = '' } = values
 
     // Auto-detect guest count from uploaded photos (clamp to 2-4)
     const numGuests = Math.max(2, Math.min(4, guests.length || 2))
@@ -260,13 +260,32 @@ export function CommunityStandupTemplate({
             return ''
         }
 
-        // Pill line 2 is fixed for Community Standup templates
-        const pillLine2 = 'COMMUNITY STANDUP'
+        // Normalize pill lines: if only line2 is provided, promote it to line1
+        let effectiveLine1 = pillLine1.trim()
+        let effectiveLine2 = pillLine2.trim()
+        if (!effectiveLine1 && effectiveLine2) {
+            effectiveLine1 = effectiveLine2
+            effectiveLine2 = ''
+        }
+
+        // Hide pill entirely when both lines are empty
+        const showPill = effectiveLine1.length > 0 || effectiveLine2.length > 0
+        const isTwoLine = effectiveLine2.length > 0
+        const pillHeight = isTwoLine ? 170 : 100
+        const pillRy = pillHeight / 2
+
+        // When single-line pill, center text vertically in the shorter pill
+        if (!isTwoLine && showPill) {
+            pillText1Y = pillY + pillHeight / 2 + 15
+        }
 
         // Create tokens for replacement
         const tokens = {
             BACKGROUND: bgUrl,
             // Position tokens
+            PILL_DISPLAY: showPill ? 'inline' : 'none',
+            PILL_HEIGHT: pillHeight,
+            PILL_RY: pillRy,
             PILL_Y: pillY,
             PILL_TEXT_1_Y: pillText1Y,
             PILL_TEXT_2_Y: pillText2Y,
@@ -276,8 +295,8 @@ export function CommunityStandupTemplate({
             TOPIC_LINE_4_Y: topicLine4Y,
             TOPIC_FONT_SIZE: topicFontSize,
             // Content tokens
-            PILL_LINE_1: escapeXml(pillLine1),
-            PILL_LINE_2: escapeXml(pillLine2),
+            PILL_LINE_1: escapeXml(effectiveLine1),
+            PILL_LINE_2: escapeXml(effectiveLine2),
             TOPIC_LINE_1: escapeXml(topicLines[0] || ''),
             TOPIC_LINE_2: escapeXml(topicLines[1] || ''),
             TOPIC_LINE_3: escapeXml(topicLines[2] || ''),
@@ -305,7 +324,7 @@ export function CommunityStandupTemplate({
         }
 
         return svg
-    }, [resolution, selectedBackground, pillLine1, topic, guests, guestNames])
+    }, [resolution, selectedBackground, pillLine1, pillLine2, topic, guests, guestNames])
 
     return { generateSvg }
 }

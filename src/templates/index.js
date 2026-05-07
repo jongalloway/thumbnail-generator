@@ -104,7 +104,15 @@ export const TEMPLATES = {
                 placeholder: 'e.g., ASP.NET Core, Blazor, AI',
                 maxLength: 30,
                 defaultValue: 'ASP.NET CORE',
-                helperText: 'Second line is fixed to "COMMUNITY STANDUP"',
+            },
+            {
+                id: 'pillLine2',
+                type: FIELD_TYPES.TEXT,
+                label: 'Pill Second Line (optional)',
+                placeholder: 'e.g., COMMUNITY STANDUP',
+                maxLength: 30,
+                defaultValue: 'COMMUNITY STANDUP',
+                helperText: 'Leave empty to show a single-line pill',
             },
             {
                 id: 'topic',
@@ -132,6 +140,7 @@ export const TEMPLATES = {
         ],
         defaultValues: {
             pillLine1: 'ASP.NET CORE',
+            pillLine2: 'COMMUNITY STANDUP',
             topic: '',
             guests: [],
             guestNames: '',
