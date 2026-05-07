@@ -2,9 +2,21 @@ import { useCallback } from 'react'
 import { parseResolution, inlineSvgImages } from '../utils/svgUtils'
 
 /**
+ * Convert a title string to kebab-case for use in filenames
+ */
+function toKebabCase(title) {
+    if (!title) return 'thumbnail'
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        || 'thumbnail'
+}
+
+/**
  * Hook for exporting thumbnails as raster images or SVG
  */
-export function useExport(generateSvg, resolution, showToast) {
+export function useExport(generateSvg, resolution, showToast, title) {
     // Export as raster (JPG/PNG/WEBP)
     const exportRaster = useCallback(async (format = 'jpg') => {
         const [width, height] = parseResolution(resolution)
@@ -57,7 +69,7 @@ export function useExport(generateSvg, resolution, showToast) {
                 const downloadUrl = URL.createObjectURL(blob)
                 const a = document.createElement('a')
                 a.href = downloadUrl
-                a.download = `thumbnail-${Date.now()}.${extension}`
+                a.download = `${toKebabCase(title)}.${extension}`
                 a.click()
                 URL.revokeObjectURL(downloadUrl)
                 showToast(`${extension.toUpperCase()} exported successfully!`)
@@ -66,7 +78,7 @@ export function useExport(generateSvg, resolution, showToast) {
             console.error('Export failed:', err)
             showToast('Export failed. Try SVG export instead.', 'error')
         }
-    }, [resolution, generateSvg, showToast])
+    }, [resolution, generateSvg, showToast, title])
 
     // Export as SVG
     const exportSvg = useCallback(() => {
@@ -75,14 +87,60 @@ export function useExport(generateSvg, resolution, showToast) {
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `thumbnail-${Date.now()}.svg`
+        a.download = `${toKebabCase(title)}.svg`
         a.click()
         URL.revokeObjectURL(url)
         showToast('SVG exported successfully!')
-    }, [generateSvg, showToast])
+    }, [generateSvg, showToast, title])
+
+    // Copy preview to clipboard as PNG
+    const copyToClipboard = useCallback(async () => {
+        const [width, height] = parseResolution(resolution)
+        const svgString = generateSvg()
+
+        let url
+        try {
+            const inlinedSvg = await inlineSvgImages(svgString)
+
+            const canvas = document.createElement('canvas')
+            canvas.width = width
+            canvas.height = height
+            const ctx = canvas.getContext('2d')
+            if (!ctx) throw new Error('Failed to get canvas context')
+
+            const img = new Image()
+            img.crossOrigin = 'anonymous'
+            const svgBlob = new Blob([inlinedSvg], { type: 'image/svg+xml;charset=utf-8' })
+            url = URL.createObjectURL(svgBlob)
+
+            await new Promise((resolve, reject) => {
+                img.onload = resolve
+                img.onerror = () => reject(new Error('Failed to load SVG image'))
+                img.src = url
+            })
+
+            ctx.drawImage(img, 0, 0, width, height)
+
+            const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
+            if (!blob) {
+                showToast('Failed to copy to clipboard.', 'error')
+                return
+            }
+            await navigator.clipboard.write([
+                new ClipboardItem({ 'image/png': blob })
+            ])
+            showToast('Copied to clipboard!')
+        } catch (err) {
+            console.error('Copy to clipboard failed:', err)
+            showToast('Failed to copy to clipboard.', 'error')
+        } finally {
+            if (url) URL.revokeObjectURL(url)
+        }
+    }, [resolution, generateSvg, showToast])
 
     return {
         exportRaster,
         exportSvg,
+        copyToClipboard,
     }
 }
