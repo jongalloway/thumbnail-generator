@@ -52,6 +52,7 @@
      preserveAspectRatio="xMidYMid slice"
      id="image3" />
   <!-- Pill Badge -->
+  <g display="__PILL_DISPLAY__">
   <rect
      x="50"
      y="__PILL_Y__"
@@ -83,6 +84,7 @@
      id="text4">
     __PILL_LINE_2__
   </text>
+  </g>
   <!-- Topic Text (width limited to ~55% to avoid photo overlap) -->
   <text
      x="55"

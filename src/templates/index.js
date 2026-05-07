@@ -16,7 +16,6 @@ export const FIELD_TYPES = {
     TEXT: 'text',
     TEXTAREA: 'textarea',
     SELECT: 'select',
-    CHECKBOX: 'checkbox',
     IMAGE: 'image',
     IMAGE_ARRAY: 'image_array',
     LOGO: 'logo',
@@ -99,18 +98,21 @@ export const TEMPLATES = {
         // Backgrounds are auto-discovered from public/templates/dotnet-community-standup/backgrounds/
         fields: [
             {
-                id: 'showCommunityStandup',
-                type: FIELD_TYPES.CHECKBOX,
-                label: 'Show "Community Standup" text',
-                defaultValue: true,
-            },
-            {
                 id: 'pillLine1',
                 type: FIELD_TYPES.TEXT,
                 label: 'Standup Name (top line)',
                 placeholder: 'e.g., ASP.NET Core, Blazor, AI',
                 maxLength: 30,
                 defaultValue: 'ASP.NET CORE',
+            },
+            {
+                id: 'pillLine2',
+                type: FIELD_TYPES.TEXT,
+                label: 'Pill Second Line (optional)',
+                placeholder: 'e.g., COMMUNITY STANDUP',
+                maxLength: 30,
+                defaultValue: 'COMMUNITY STANDUP',
+                helperText: 'Leave empty to show a single-line pill',
             },
             {
                 id: 'topic',
@@ -137,8 +139,8 @@ export const TEMPLATES = {
             },
         ],
         defaultValues: {
-            showCommunityStandup: true,
             pillLine1: 'ASP.NET CORE',
+            pillLine2: 'COMMUNITY STANDUP',
             topic: '',
             guests: [],
             guestNames: '',

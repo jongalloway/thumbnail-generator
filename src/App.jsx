@@ -320,22 +320,6 @@ function App() {
         )
       }
 
-      case FIELD_TYPES.CHECKBOX:
-        return (
-          <div key={field.id} className="control-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                id={`field-${field.id}`}
-                checked={!!value}
-                onChange={(e) => handleFieldChange(field.id, e.target.checked)}
-              />
-              <span>{field.label}</span>
-            </label>
-            {field.helperText && <small className="helper-text">{field.helperText}</small>}
-          </div>
-        )
-
       case FIELD_TYPES.LOGO_ARRAY:
         return (
           <LogoArrayField
