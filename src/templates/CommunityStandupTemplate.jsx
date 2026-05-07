@@ -260,15 +260,22 @@ export function CommunityStandupTemplate({
             return ''
         }
 
+        // Normalize pill lines: if only line2 is provided, promote it to line1
+        let effectiveLine1 = pillLine1.trim()
+        let effectiveLine2 = pillLine2.trim()
+        if (!effectiveLine1 && effectiveLine2) {
+            effectiveLine1 = effectiveLine2
+            effectiveLine2 = ''
+        }
+
         // Hide pill entirely when both lines are empty
-        const hasPillLine1 = pillLine1.trim().length > 0
-        const hasPillLine2 = pillLine2.trim().length > 0
-        const showPill = hasPillLine1 || hasPillLine2
-        const pillHeight = hasPillLine2 ? 170 : 100
+        const showPill = effectiveLine1.length > 0 || effectiveLine2.length > 0
+        const isTwoLine = effectiveLine2.length > 0
+        const pillHeight = isTwoLine ? 170 : 100
         const pillRy = pillHeight / 2
 
         // When single-line pill, center text vertically in the shorter pill
-        if (!hasPillLine2) {
+        if (!isTwoLine && showPill) {
             pillText1Y = pillY + pillHeight / 2 + 15
         }
 
@@ -288,8 +295,8 @@ export function CommunityStandupTemplate({
             TOPIC_LINE_4_Y: topicLine4Y,
             TOPIC_FONT_SIZE: topicFontSize,
             // Content tokens
-            PILL_LINE_1: escapeXml(pillLine1),
-            PILL_LINE_2: escapeXml(hasPillLine2 ? pillLine2 : ''),
+            PILL_LINE_1: escapeXml(effectiveLine1),
+            PILL_LINE_2: escapeXml(effectiveLine2),
             TOPIC_LINE_1: escapeXml(topicLines[0] || ''),
             TOPIC_LINE_2: escapeXml(topicLines[1] || ''),
             TOPIC_LINE_3: escapeXml(topicLines[2] || ''),
