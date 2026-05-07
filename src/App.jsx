@@ -230,7 +230,7 @@ function App() {
   const generateSvg = useCallback(() => generateSvgRef.current(), [])
 
   // Export functionality
-  const { exportRaster, exportSvg } = useExport(generateSvg, resolution, showToast)
+  const { exportRaster, exportSvg, copyToClipboard } = useExport(generateSvg, resolution, showToast, fieldValues.title)
 
   const handleExportRaster = useCallback(() => {
     exportRaster(exportFormat)
@@ -461,6 +461,13 @@ function App() {
               onGenerateSvg={setGenerateSvg}
             />
           </div>
+          <button type="button" className="btn btn-clipboard" onClick={copyToClipboard} title="Copy to clipboard">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M3 10V2.5A1.5 1.5 0 0 1 4.5 1H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            Copy to clipboard
+          </button>
 
           <aside className="preview-help" aria-label="Instructions">
             <h3 className="preview-help-title">Quick tips</h3>
