@@ -9,8 +9,17 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      npm-production-dependencies:
+        dependency-type: "production"
+      npm-development-dependencies:
+        dependency-type: "development"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
