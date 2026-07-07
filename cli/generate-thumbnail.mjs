@@ -436,7 +436,7 @@ async function main() {
     const variant = args.variant || 'dark'
     const resolution = args.resolution || '1920x1080'
     const format = (args.format || 'png').toLowerCase()
-    const [width, height] = parseResolution(resolution)
+    const [width] = parseResolution(resolution)
 
     if (!['png', 'svg'].includes(format)) {
         console.error(`Unsupported format: ${format}. Use png or svg.`)
