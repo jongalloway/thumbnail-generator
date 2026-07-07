@@ -111,9 +111,11 @@ function TemplateRenderer({ templateId, values, selectedBackground, variant, res
   const TemplateComponent = templateComponents[templateId]
   const { generateSvg } = TemplateComponent({ values, selectedBackground, variant, resolution })
 
-  // Keep parent's ref in sync with the latest generateSvg
+  // Keep parent's ref in sync with the latest onGenerateSvg
   const callbackRef = useRef(onGenerateSvg)
-  callbackRef.current = onGenerateSvg
+  useEffect(() => {
+    callbackRef.current = onGenerateSvg
+  }, [onGenerateSvg])
   useEffect(() => {
     callbackRef.current(generateSvg)
   }, [generateSvg])
