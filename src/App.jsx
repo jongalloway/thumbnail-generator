@@ -34,16 +34,35 @@ const discoveredLogos = Object.entries(logoModules).map(([path, url]) => {
   }
 })
 
+// Standup name (pill top line) keyed by background id (lowercased filename
+// without extension). Doubles as the background dropdown label so the selector
+// matches the show name. Prefilled into the (still editable) Standup Name field
+// on background selection, so users can override (e.g., ASP.NET CORE -> BLAZOR).
+const STANDUP_NAME_BY_BACKGROUND = {
+  'dotnet-standup-aspnet': 'ASP.NET CORE',
+  'dotnet-standup-ai': '.NET & AI',
+  'dotnet-standup-data': '.NET DATA',
+  'dotnet-standup-maui': '.NET MAUI',
+  'dotnet-standup-runtime': 'LANGUAGES & RUNTIME',
+}
+
+// Build a human-friendly display name for a background filename (without extension)
+function formatBackgroundLabel(name) {
+  const override = STANDUP_NAME_BY_BACKGROUND[name.toLowerCase()]
+  if (override) return override
+  return name
+    .split(/[-_]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 // Auto-discover shared backgrounds from /public/backgrounds/
 const sharedBackgroundModules = import.meta.glob('../public/backgrounds/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
 
 const sharedBackgrounds = Object.entries(sharedBackgroundModules).map(([path, url]) => {
   const filename = path.split('/').pop()
   const name = filename.replace(/\.[^.]+$/, '')
-  const displayName = name
-    .split(/[-_]/)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+  const displayName = formatBackgroundLabel(name)
   const variant = name.toLowerCase().includes('light') ? 'light' : 'dark'
   return {
     id: name.toLowerCase(),
@@ -65,10 +84,7 @@ Object.entries(templateBackgroundModules).forEach(([path, url]) => {
   const templateId = parts[parts.indexOf('templates') + 1]
   const filename = parts.pop()
   const name = filename.replace(/\.[^.]+$/, '')
-  const displayName = name
-    .split(/[-_]/)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+  const displayName = formatBackgroundLabel(name)
   const variant = name.toLowerCase().includes('light') ? 'light' : 'dark'
 
   if (!templateSpecificBackgrounds[templateId]) {
@@ -379,7 +395,14 @@ function App() {
               onChange={(e) => {
                 const bg = backgrounds.find(b => b.id === e.target.value)
                 setSelectedBackground(bg)
-                if (bg) setVariant(bg.variant)
+                if (bg) {
+                  setVariant(bg.variant)
+                  // Prefill the (still editable) Standup Name for known backgrounds
+                  if (selectedTemplateId === 'dotnet-community-standup') {
+                    const standupName = STANDUP_NAME_BY_BACKGROUND[bg.id]
+                    if (standupName) handleFieldChange('pillLine1', standupName)
+                  }
+                }
               }}
             >
               {backgrounds.map(bg => (
