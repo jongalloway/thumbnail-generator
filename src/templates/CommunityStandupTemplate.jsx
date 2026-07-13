@@ -279,6 +279,20 @@ export function CommunityStandupTemplate({
             pillText1Y = pillY + pillHeight / 2 + 15
         }
 
+        // Adaptive pill font size: the pill rect is a fixed 550px wide, so long
+        // names (e.g., "LANGUAGES & RUNTIME") need a smaller font to keep
+        // horizontal padding. Short names stay at the default 45px.
+        const PILL_INNER_WIDTH = 550
+        const PILL_SIDE_PADDING = 45
+        const PILL_CAPS_WIDTH_FACTOR = 0.62 // ~avg glyph width ÷ font size for uppercase Segoe UI
+        const longestPillLineLen = Math.max(effectiveLine1.length, effectiveLine2.length)
+        let pillFontSize = 45
+        if (longestPillLineLen > 0) {
+            const maxTextWidth = PILL_INNER_WIDTH - PILL_SIDE_PADDING * 2
+            const fitFontSize = maxTextWidth / (longestPillLineLen * PILL_CAPS_WIDTH_FACTOR)
+            pillFontSize = Math.max(32, Math.min(45, Math.floor(fitFontSize)))
+        }
+
         // Create tokens for replacement
         const tokens = {
             BACKGROUND: bgUrl,
@@ -289,6 +303,7 @@ export function CommunityStandupTemplate({
             PILL_Y: pillY,
             PILL_TEXT_1_Y: pillText1Y,
             PILL_TEXT_2_Y: pillText2Y,
+            PILL_FONT_SIZE: pillFontSize,
             TOPIC_LINE_1_Y: topicLine1Y,
             TOPIC_LINE_2_Y: topicLine2Y,
             TOPIC_LINE_3_Y: topicLine3Y,
