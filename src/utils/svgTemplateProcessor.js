@@ -56,7 +56,7 @@ export function wrapTopicText(topic, maxCharsPerLine = 25, maxLines = 3) {
     const lines = [];
     let currentLine = '';
 
-    for (const word of words) {
+    for (const [index, word] of words.entries()) {
         if (currentLine.length + word.length + 1 <= maxCharsPerLine) {
             currentLine = currentLine ? `${currentLine} ${word}` : word;
         } else {
@@ -64,7 +64,7 @@ export function wrapTopicText(topic, maxCharsPerLine = 25, maxLines = 3) {
             currentLine = word;
             if (lines.length >= maxLines - 1) {
                 // Last line - add remaining words
-                const remainingWords = words.slice(words.indexOf(word));
+                const remainingWords = words.slice(index);
                 lines.push(remainingWords.join(' '));
                 break;
             }
