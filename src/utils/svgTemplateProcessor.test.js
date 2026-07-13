@@ -22,4 +22,14 @@ describe('wrapTopicText', () => {
     it('returns padded empties for empty input', () => {
         expect(wrapTopicText('', 25, 3)).toEqual(['', '', ''])
     })
+
+    it('handles repeated words in long topics correctly', () => {
+        // "the" appears multiple times; indexOf would incorrectly slice from the first occurrence
+        const lines = wrapTopicText('the quick brown fox the the lazy dog the end', 20, 3)
+        expect(lines).toHaveLength(3)
+        // The last line should contain everything from the overflow point onward,
+        // not re-include words from the beginning
+        const joined = lines.join(' ').trimEnd()
+        expect(joined).toBe('the quick brown fox the the lazy dog the end')
+    })
 })
