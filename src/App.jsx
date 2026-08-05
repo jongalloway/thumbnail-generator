@@ -16,6 +16,7 @@ import { useExport } from './hooks/useExport'
 import { loadPersistedSettings, persistSetting } from './hooks/usePersistedState'
 import { parseResolution } from './utils/svgUtils'
 import { STANDUP_NAME_BY_BACKGROUND, formatBackgroundLabel } from './utils/backgroundLabels'
+import { parseUrlState } from './utils/urlState'
 
 // Auto-discover logos using Vite's import.meta.glob
 const logoModules = import.meta.glob('../public/logos/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
@@ -136,9 +137,13 @@ function findBackgroundById(backgrounds, id) {
 function App() {
   // Load persisted settings on init
   const persistedSettings = useMemo(() => loadPersistedSettings(), [])
+  const urlState = useMemo(() => parseUrlState(window.location.search), [])
 
-  // Template selection - restore from localStorage if available
+  // URL settings take precedence over localStorage when provided.
   const [selectedTemplateId, setSelectedTemplateId] = useState(() => {
+    if (urlState.hasTemplate) {
+      return urlState.templateId
+    }
     const persisted = persistedSettings.templateId
     if (persisted && getTemplateIds().includes(persisted)) {
       return persisted
@@ -148,11 +153,31 @@ function App() {
   const selectedTemplate = getTemplate(selectedTemplateId)
 
   // Template field values
-  const [fieldValues, setFieldValues] = useState(() => getDefaultValues(selectedTemplateId))
+  const [fieldValues, setFieldValues] = useState(() => {
+    const values = urlState.hasFieldValues ? urlState.fieldValues : getDefaultValues(selectedTemplateId)
+    const urlBackground = findBackgroundById(
+      templateBackgrounds[selectedTemplateId] || [],
+      urlState.backgroundId
+    )
+    const standupName = urlBackground && selectedTemplateId === 'dotnet-community-standup'
+      ? STANDUP_NAME_BY_BACKGROUND[urlBackground.id]
+      : null
+
+    if (standupName && !urlState.providedFields.includes('pillLine1')) {
+      return { ...values, pillLine1: standupName }
+    }
+
+    return values
+  })
 
   // Background and export settings - restore background from localStorage if available
   const backgrounds = useMemo(() => templateBackgrounds[selectedTemplateId] || [], [selectedTemplateId])
   const [selectedBackground, setSelectedBackground] = useState(() => {
+    const urlBgId = urlState.backgroundId
+    if (urlBgId) {
+      const found = findBackgroundById(templateBackgrounds[selectedTemplateId] || [], urlBgId)
+      if (found) return found
+    }
     const persistedBgId = persistedSettings.backgroundId
     const persistedTemplateId = persistedSettings.templateId
     // Only restore background if it's from the same template
@@ -164,8 +189,8 @@ function App() {
     return backgrounds[0] || null
   })
   const [variant, setVariant] = useState(selectedBackground?.variant || 'dark')
-  const [resolution, setResolution] = useState(() => persistedSettings.resolution || '1920x1080')
-  const [exportFormat, setExportFormat] = useState(() => persistedSettings.exportFormat || 'jpg')
+  const [resolution, setResolution] = useState(() => urlState.resolution || persistedSettings.resolution || '1920x1080')
+  const [exportFormat, setExportFormat] = useState(() => urlState.exportFormat || persistedSettings.exportFormat || 'jpg')
 
   // Persist settings when they change
   useEffect(() => {

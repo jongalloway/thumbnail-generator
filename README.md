@@ -37,6 +37,16 @@ npm run build
 npm run preview
 ```
 
+### URL preselection
+
+Template selections and editable fields can be supplied as query parameters. URL values take precedence over saved settings:
+
+```text
+?template=on-dotnet-live&background=blue-gradient&title=Building%20with%20.NET&guestCount=1&day=Tuesday&time=9%3A00%20AM%20PST
+```
+
+Use `field.<id>` instead of `<id>` when preferred. Supported shared settings are `template`/`templateId`, `background`/`backgroundId`, `resolution`, and `format`/`exportFormat`. Upload fields such as images and logos cannot be populated from a URL.
+
 ### Deploy to GitHub Pages
 
 The site is configured to deploy to GitHub Pages. Simply push to the main branch and the GitHub Actions workflow will build and deploy automatically.
