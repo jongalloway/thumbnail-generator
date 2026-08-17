@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { escapeXml, getTextMeasureContext, parseResolution, wrapTextToWidth } from '../utils/svgUtils'
 import { replaceTokens } from '../utils/svgTemplateProcessor'
+import { wrapSpeakerNames } from '../utils/speakerNameLines'
 
 const TEMPLATE_PATHS = {
     2: '/thumbnail-generator/templates/azure-developers-live/two-speakers.svg',
@@ -66,8 +67,7 @@ export function AzureDevelopersLiveTemplate({ values, resolution }) {
         const topicLines = wrapTextToWidth(topic.trim(), 1010, context, '700 140px "Segoe UI"').slice(0, 3)
         while (topicLines.length < 3) topicLines.push('')
         const names = speakerNames.split(/\s*[,+]\s*/).map(name => name.trim()).filter(Boolean)
-        const nameText = names.length ? `with ${names.join(' + ')}` : ''
-        const nameLines = wrapTextToWidth(nameText, 1025, context, '700 56px "Segoe UI"').slice(0, 2)
+        const nameLines = wrapSpeakerNames(names, 1025, context, '700 56px "Segoe UI"').slice(0, 2)
         while (nameLines.length < 2) nameLines.push('')
         const getSpeaker = index => speakers[index]?.dataUrl || speakers[index]?.url || ''
         const tokens = {
