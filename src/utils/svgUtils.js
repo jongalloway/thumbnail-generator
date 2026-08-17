@@ -127,7 +127,11 @@ function namespaceSvgIds(svg, prefix) {
     if (ids.size === 0) return
 
     const replaceReferences = (value) => value
-        .replace(/url\(#([^)]*)\)/g, (match, id) => `url(#${ids.get(id) || id})`)
+        .replace(/url\(\s*(?:(["'])#([^"']+)\1|#([^) \t\r\n]+))\s*\)/gi, (match, quote, quotedId, unquotedId) => {
+            const id = quotedId || unquotedId
+            const namespacedId = ids.get(id)
+            return namespacedId ? `url(${quote || ''}#${namespacedId}${quote || ''})` : match
+        })
         .replace(/^#(.+)$/, (match, id) => `#${ids.get(id) || id}`)
 
     elements.forEach((element) => {
@@ -138,9 +142,37 @@ function namespaceSvgIds(svg, prefix) {
             }
         })
         if (element.nodeName.toLowerCase() === 'style') {
-            element.textContent = replaceReferences(element.textContent || '')
+            element.textContent = replaceCssReferences(element.textContent || '', ids, replaceReferences)
         }
     })
+}
+
+function replaceCssReferences(css, ids, replaceReferences) {
+    const styleSheet = new CSSStyleSheet()
+    styleSheet.replaceSync(css)
+
+    const updateRules = (rules) => {
+        Array.from(rules).forEach((rule) => {
+            if (rule.selectorText) {
+                rule.selectorText = rule.selectorText.replace(/#([_a-zA-Z][\w-]*)/g, (match, id) => (
+                    ids.has(id) ? `#${ids.get(id)}` : match
+                ))
+            }
+            if (rule.style) {
+                Array.from(rule.style).forEach((property) => {
+                    const value = rule.style.getPropertyValue(property)
+                    const updatedValue = replaceReferences(value)
+                    if (updatedValue !== value) {
+                        rule.style.setProperty(property, updatedValue, rule.style.getPropertyPriority(property))
+                    }
+                })
+            }
+            if (rule.cssRules) updateRules(rule.cssRules)
+        })
+    }
+
+    updateRules(styleSheet.cssRules)
+    return Array.from(styleSheet.cssRules, (rule) => rule.cssText).join('\n')
 }
 
 function copyImageLayout(imageElement, sourceSvg) {
