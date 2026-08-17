@@ -63,7 +63,7 @@ export function AzureDevelopersLiveTemplate({ values, resolution }) {
         }
 
         const context = getTextMeasureContext()
-        const topicLines = wrapTextToWidth(topic.trim(), 1010, context, '700 104px "Segoe UI"').slice(0, 3)
+        const topicLines = wrapTextToWidth(topic.trim(), 1010, context, '700 140px "Segoe UI"').slice(0, 3)
         while (topicLines.length < 3) topicLines.push('')
         const names = speakerNames.split(/\s*[,+]\s*/).map(name => name.trim()).filter(Boolean)
         const nameText = names.length ? `with ${names.join(' + ')}` : ''
