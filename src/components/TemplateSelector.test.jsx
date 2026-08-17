@@ -14,5 +14,6 @@ describe('TemplateSelector', () => {
         const select = screen.getByLabelText(/layout template/i)
         expect(select).toHaveValue('dotnet-community-standup')
         expect(screen.getByRole('option', { name: /community standup/i })).toBeInTheDocument()
+        expect(screen.getByRole('option', { name: 'Azure Developers Live' })).toBeInTheDocument()
     })
 })

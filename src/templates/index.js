@@ -146,6 +146,42 @@ export const TEMPLATES = {
             guestNames: '',
         },
     },
+    'azure-developers-live': {
+        id: 'azure-developers-live',
+        name: 'Azure Developers Live',
+        description: 'Live show thumbnails with two or three speakers',
+        usesFixedBackground: true,
+        fields: [
+            {
+                id: 'topic',
+                type: FIELD_TYPES.TEXT,
+                label: 'Episode Topic',
+                placeholder: 'e.g., Build intelligent workflows with Logic Apps',
+                maxLength: 100,
+                required: true,
+            },
+            {
+                id: 'speakers',
+                type: FIELD_TYPES.IMAGE_ARRAY,
+                label: 'Speaker Photos',
+                helperText: 'Upload two or three speaker photos (layout auto-selects based on count)',
+                maxItems: 3,
+            },
+            {
+                id: 'speakerNames',
+                type: FIELD_TYPES.TEXT,
+                label: 'Speaker Names',
+                placeholder: 'e.g., Jane Doe, John Smith',
+                maxLength: 120,
+                helperText: 'Separate names with , or +',
+            },
+        ],
+        defaultValues: {
+            topic: '',
+            speakers: [],
+            speakerNames: '',
+        },
+    },
     'on-dotnet-live': {
         id: 'on-dotnet-live',
         name: 'On .NET Live',

@@ -1,0 +1,18 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="showTitleGradient" x1="75" y1="72" x2="925" y2="168" gradientUnits="userSpaceOnUse"><stop stop-color="#98e8e9"/><stop offset=".5" stop-color="#74e0d2"/><stop offset="1" stop-color="#aae0b1"/></linearGradient>
+    <clipPath id="speaker1"><circle cx="1665" cy="315" r="205"/></clipPath>
+    <clipPath id="speaker2"><circle cx="1370" cy="610" r="210"/></clipPath>
+  </defs>
+  <image xlink:href="/thumbnail-generator/templates/azure-developers-live/background.jpg" x="0" y="0" width="1920" height="1080" preserveAspectRatio="none"/>
+  <rect x="75" y="72" width="850" height="96" rx="48" fill="url(#showTitleGradient)"/>
+  <text x="500" y="133" text-anchor="middle" fill="#07152c" font-family="Segoe UI, sans-serif" font-size="45" font-weight="800" letter-spacing="4">AZURE LOGIC APPS LIVE</text>
+  <g fill="#fff" font-family="Segoe UI, sans-serif" font-size="140" font-weight="700"><text x="75" y="385">__TOPIC_LINE_1__</text><text x="75" y="550">__TOPIC_LINE_2__</text><text x="75" y="715">__TOPIC_LINE_3__</text></g>
+  <g fill="#fff" font-family="Segoe UI, sans-serif" font-size="56" font-weight="700"><text x="75" y="885">__SPEAKER_NAMES_LINE_1__</text><text x="75" y="952">__SPEAKER_NAMES_LINE_2__</text></g>
+  <circle cx="1665" cy="315" r="230" fill="#6fe2d3" opacity=".35"/>
+  <image xlink:href="__SPEAKER_1__" x="1460" y="110" width="410" height="410" clip-path="url(#speaker1)" preserveAspectRatio="xMidYMid slice"/>
+  <circle cx="1370" cy="610" r="235" fill="#b7e67a" opacity=".32"/>
+  <image xlink:href="__SPEAKER_2__" x="1160" y="400" width="420" height="420" clip-path="url(#speaker2)" preserveAspectRatio="xMidYMid slice"/>
+  <image xlink:href="/thumbnail-generator/templates/azure-developers-live/aviators-logo.png" x="1290" y="747" width="454" height="313" preserveAspectRatio="xMidYMid meet"/>
+  <g transform="translate(1742 946)" fill="#fff"><rect width="46" height="46"/><rect x="57" width="46" height="46"/><rect y="57" width="46" height="46"/><rect x="57" y="57" width="46" height="46"/></g>
+</svg>
