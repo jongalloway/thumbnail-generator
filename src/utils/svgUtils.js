@@ -154,7 +154,7 @@ function replaceCssReferences(css, ids, replaceReferences) {
     const updateRules = (rules) => {
         Array.from(rules).forEach((rule) => {
             if (rule.selectorText) {
-                rule.selectorText = rule.selectorText.replace(/#([_a-zA-Z][\w-]*)/g, (match, id) => (
+                rule.selectorText = rule.selectorText.replace(/#([\w-]+)/g, (match, id) => (
                     ids.has(id) ? `#${ids.get(id)}` : match
                 ))
             }
@@ -185,6 +185,7 @@ function copyImageLayout(imageElement, sourceSvg) {
 function isSvgBlob(blob) {
     return /^image\/svg\+xml(?:;|$)/i.test(blob.type)
 }
+
 /**
  * Generate a unique ID for SVG elements
  */

@@ -73,6 +73,7 @@ describe('inlineSvgImages', () => {
                             #shape { fill: url("#gradient"); }
                         </style>
                         <rect id="shape" fill="url('#gradient')" />
+                        <circle fill="url(#gradient)" />
                     </svg>
                 `),
             }),
@@ -91,6 +92,7 @@ describe('inlineSvgImages', () => {
         expect(embeddedSvg?.getAttribute('y')).toBe('20')
         expect(embeddedSvg?.querySelector('linearGradient')?.getAttribute('id')).toBe('embedded-svg-0-gradient')
         expect(embeddedSvg?.querySelector('rect')?.getAttribute('fill')).toBe("url('#embedded-svg-0-gradient')")
+        expect(embeddedSvg?.querySelector('circle')?.getAttribute('fill')).toBe('url(#embedded-svg-0-gradient)')
         expect(embeddedSvg?.querySelector('style')?.textContent).toContain('#embedded-svg-0-shape')
         expect(embeddedSvg?.querySelector('style')?.textContent).toContain('url("#embedded-svg-0-gradient")')
     })
