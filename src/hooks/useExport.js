@@ -80,17 +80,23 @@ export function useExport(generateSvg, resolution, showToast, title) {
         }
     }, [resolution, generateSvg, showToast, title])
 
-    // Export as SVG
-    const exportSvg = useCallback(() => {
+    // Export as SVG with embedded bitmap assets so it remains self-contained.
+    const exportSvg = useCallback(async () => {
         const svgString = generateSvg()
-        const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `${toKebabCase(title)}.svg`
-        a.click()
-        URL.revokeObjectURL(url)
-        showToast('SVG exported successfully!')
+        try {
+            const inlinedSvg = await inlineSvgImages(svgString)
+            const blob = new Blob([inlinedSvg], { type: 'image/svg+xml;charset=utf-8' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `${toKebabCase(title)}.svg`
+            a.click()
+            URL.revokeObjectURL(url)
+            showToast('SVG exported successfully!')
+        } catch (err) {
+            console.error('SVG export failed:', err)
+            showToast('SVG export failed.', 'error')
+        }
     }, [generateSvg, showToast, title])
 
     // Copy preview to clipboard as PNG
