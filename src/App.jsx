@@ -6,6 +6,7 @@ import { TEMPLATES, getTemplate, getDefaultValues, getTemplateIds, FIELD_TYPES }
 import { DotNetBlogTemplate } from './templates/DotNetBlogTemplate'
 import { CommunityStandupTemplate } from './templates/CommunityStandupTemplate'
 import { OnDotNetLiveTemplate } from './templates/OnDotNetLiveTemplate'
+import { AzureDevelopersLiveTemplate } from './templates/AzureDevelopersLiveTemplate'
 
 // Components
 import { TemplateSelector, ImageArrayField, ImageField, LogoArrayField } from './components'
@@ -98,6 +99,7 @@ const templateComponents = {
   'dotnet-blog': DotNetBlogTemplate,
   'dotnet-community-standup': CommunityStandupTemplate,
   'on-dotnet-live': OnDotNetLiveTemplate,
+  'azure-developers-live': AzureDevelopersLiveTemplate,
 }
 
 /**
@@ -254,7 +256,7 @@ function App() {
   const generateSvg = useCallback(() => generateSvgRef.current(), [])
 
   // Export functionality
-  const { exportRaster, exportSvg, copyToClipboard } = useExport(generateSvg, resolution, showToast, fieldValues.title)
+  const { exportRaster, exportSvg, copyToClipboard } = useExport(generateSvg, resolution, showToast, fieldValues.title || fieldValues.topic)
 
   const handleExportRaster = useCallback(() => {
     exportRaster(exportFormat)
@@ -393,7 +395,7 @@ function App() {
           <hr style={{ margin: 'var(--spacing-md) 0', border: 'none', borderTop: '1px solid var(--color-border)' }} />
 
           {/* Background Selection */}
-          <div className="control-group">
+          {!selectedTemplate?.usesFixedBackground && <div className="control-group">
             <label htmlFor="background-select">Background</label>
             <select
               id="background-select"
@@ -415,7 +417,7 @@ function App() {
                 <option key={bg.id} value={bg.id}>{bg.name}</option>
               ))}
             </select>
-          </div>
+          </div>}
 
           {/* Variant Selection - only show for templates that use it */}
           {selectedTemplateId === 'dotnet-blog' && (
