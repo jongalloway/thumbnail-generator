@@ -219,9 +219,6 @@ export function DotNetBlogTemplate({
         
         <!-- Filters and clip paths -->
         <defs>
-          <filter id="${uniqueId}-shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="2" stdDeviation="8" flood-opacity="0.15"/>
-          </filter>
           <filter id="${uniqueId}-image-shadow" x="-50%" y="-50%" width="200%" height="200%">
             <feDropShadow dx="-6" dy="-6" stdDeviation="25" flood-opacity="0.3"/>
           </filter>
