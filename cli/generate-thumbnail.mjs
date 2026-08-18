@@ -325,7 +325,8 @@ function generateSvg({ title, subtitle, pill, logos, variant, resolution, bgData
 
     // Text width constraint
     const hasRightSideContent = logos.length > 0
-    const textRightBoundary = hasRightSideContent ? (width / 2) : (width - edgeMarginX)
+    // node-canvas measures Segoe UI slightly wider than the browser renderer.
+    const textRightBoundary = hasRightSideContent ? (width * 0.52) : (width - edgeMarginX)
     const textMaxWidth = Math.max(0, textRightBoundary - titleX)
 
     const titleLines = wrapTextToWidth(title, textMaxWidth, textCtx, titleFont)
@@ -374,7 +375,7 @@ function generateSvg({ title, subtitle, pill, logos, variant, resolution, bgData
         const logoSize = logoClipRadius * Math.SQRT2 * 0.98
         return `
   <g transform="translate(${x}, ${y})">
-    <circle cx="0" cy="0" r="${logoCircleRadius}" fill="white" filter="url(#${uniqueId}-shadow)"/>
+        <circle cx="0" cy="0" r="${logoCircleRadius}" fill="white"/>
     <clipPath id="${uniqueId}-logo-clip-${i}">
       <circle cx="0" cy="0" r="${logoClipRadius}"/>
     </clipPath>
@@ -382,12 +383,6 @@ function generateSvg({ title, subtitle, pill, logos, variant, resolution, bgData
   </g>`
     }).join('')}
 
-  <!-- Filters -->
-  <defs>
-    <filter id="${uniqueId}-shadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="2" stdDeviation="8" flood-opacity="0.15"/>
-    </filter>
-  </defs>
 </svg>`
 }
 

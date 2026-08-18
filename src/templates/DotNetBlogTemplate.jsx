@@ -172,7 +172,7 @@ export function DotNetBlogTemplate({
       const logoSize = logoClipRadius * Math.SQRT2 * 0.98
       return `
             <g transform="translate(${x}, ${y})">
-              <circle cx="0" cy="0" r="${logoCircleRadius}" fill="white" filter="url(#${uniqueId}-shadow)"/>
+              <circle cx="0" cy="0" r="${logoCircleRadius}" fill="white"/>
               <clipPath id="${uniqueId}-logo-clip-${i}">
                 <circle cx="0" cy="0" r="${logoClipRadius}"/>
               </clipPath>

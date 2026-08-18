@@ -61,22 +61,10 @@ describe('inlineSvgImages', () => {
         expect(image?.getAttribute('href')).toMatch(/^data:image\/png;base64,/)
         expect(image?.getAttribute('xlink:href')).toMatch(/^data:image\/png;base64,/)
     })
-    it('inlines SVG image assets with namespaced references', async () => {
+    it('embeds SVG image assets as data URLs without nesting SVG documents', async () => {
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
             ok: true,
-            blob: vi.fn().mockResolvedValue({
-                type: 'image/svg+xml',
-                text: vi.fn().mockResolvedValue(`
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-                        <defs><linearGradient id="gradient"><stop /></linearGradient></defs>
-                        <style>
-                            #shape { fill: url("#gradient"); }
-                        </style>
-                        <rect id="shape" fill="url('#gradient')" />
-                        <circle fill="url(#gradient)" />
-                    </svg>
-                `),
-            }),
+            blob: vi.fn().mockResolvedValue(new File(['<svg xmlns="http://www.w3.org/2000/svg"/>'], 'logo.svg', { type: 'image/svg+xml' })),
         }))
 
         const result = await inlineSvgImages(`
@@ -86,14 +74,10 @@ describe('inlineSvgImages', () => {
         `)
 
         const document = new DOMParser().parseFromString(result, 'image/svg+xml')
-        const embeddedSvg = document.querySelector('svg > svg')
-        expect(document.querySelector('image')).toBeNull()
-        expect(embeddedSvg?.getAttribute('x')).toBe('10')
-        expect(embeddedSvg?.getAttribute('y')).toBe('20')
-        expect(embeddedSvg?.querySelector('linearGradient')?.getAttribute('id')).toBe('embedded-svg-0-gradient')
-        expect(embeddedSvg?.querySelector('rect')?.getAttribute('fill')).toBe("url('#embedded-svg-0-gradient')")
-        expect(embeddedSvg?.querySelector('circle')?.getAttribute('fill')).toBe('url(#embedded-svg-0-gradient)')
-        expect(embeddedSvg?.querySelector('style')?.textContent).toContain('#embedded-svg-0-shape')
-        expect(embeddedSvg?.querySelector('style')?.textContent).toContain('url("#embedded-svg-0-gradient")')
+        const image = document.querySelector('image')
+        expect(image?.getAttribute('x')).toBe('10')
+        expect(image?.getAttribute('y')).toBe('20')
+        expect(image?.getAttribute('href')).toMatch(/^data:image\/svg\+xml;base64,/)
+        expect(image?.getAttribute('xlink:href')).toMatch(/^data:image\/svg\+xml;base64,/)
     })
 })
