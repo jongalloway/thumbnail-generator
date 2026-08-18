@@ -35,12 +35,6 @@ export function LogoArrayField({
         const file = event.target.files?.[0]
         if (!file) return
 
-        if (/^image\/svg\+xml(?:;|$)/i.test(file.type) || /\.svg$/i.test(file.name)) {
-            showToast?.('SVG logos are not supported. Choose a raster image.', 'error')
-            event.target.value = ''
-            return
-        }
-
         if (value.length >= maxItems) {
             showToast?.(`Maximum ${maxItems} logos allowed`, 'error')
             return
@@ -160,7 +154,7 @@ export function LogoArrayField({
                             type="file"
                             ref={fileInputRef}
                             onChange={handleFileUpload}
-                            accept="image/png,image/jpeg,image/gif,image/webp,image/avif"
+                            accept="image/svg+xml,image/png,image/jpeg,image/gif,image/webp,image/avif"
                             className="visually-hidden"
                         />
                         <button

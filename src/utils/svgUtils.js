@@ -87,7 +87,7 @@ export function parseResolution(resolution) {
 }
 
 /**
- * Convert a Blob to a data URL
+ * Convert a Blob to a data URL for self-contained SVG exports.
  */
 export function blobToDataUrl(blob) {
     return new Promise((resolve, reject) => {
@@ -96,94 +96,6 @@ export function blobToDataUrl(blob) {
         reader.onload = () => resolve(reader.result)
         reader.readAsDataURL(blob)
     })
-}
-
-/**
- * Replace an image element with a namespaced inline SVG document. SVG data URLs
- * nested in image elements are not consistently supported by image viewers.
- */
-async function inlineSvgBlob(blob, imageElement, imageIndex) {
-    const sourceDocument = new DOMParser().parseFromString(await blob.text(), 'image/svg+xml')
-    const sourceSvg = sourceDocument.documentElement
-    if (!sourceSvg || sourceSvg.nodeName.toLowerCase() !== 'svg' || sourceDocument.querySelector('parsererror')) {
-        throw new Error('Failed to parse SVG image')
-    }
-
-    namespaceSvgIds(sourceSvg, `embedded-svg-${imageIndex}`)
-    copyImageLayout(imageElement, sourceSvg)
-    imageElement.replaceWith(sourceSvg)
-}
-
-function namespaceSvgIds(svg, prefix) {
-    const ids = new Map()
-    const elements = [svg, ...svg.querySelectorAll('*')]
-    elements.filter((element) => element.hasAttribute('id')).forEach((element) => {
-        const originalId = element.getAttribute('id')
-        const namespacedId = `${prefix}-${originalId}`
-        ids.set(originalId, namespacedId)
-        element.setAttribute('id', namespacedId)
-    })
-
-    if (ids.size === 0) return
-
-    const replaceReferences = (value) => value
-        .replace(/url\(\s*(?:(["'])#([^"']+)\1|#([^) \t\r\n]+))\s*\)/gi, (match, quote, quotedId, unquotedId) => {
-            const id = quotedId || unquotedId
-            const namespacedId = ids.get(id)
-            return namespacedId ? `url(${quote || ''}#${namespacedId}${quote || ''})` : match
-        })
-        .replace(/^#(.+)$/, (match, id) => `#${ids.get(id) || id}`)
-
-    elements.forEach((element) => {
-        Array.from(element.attributes).forEach((attribute) => {
-            const updatedValue = replaceReferences(attribute.value)
-            if (updatedValue !== attribute.value) {
-                element.setAttribute(attribute.name, updatedValue)
-            }
-        })
-        if (element.nodeName.toLowerCase() === 'style') {
-            element.textContent = replaceCssReferences(element.textContent || '', ids, replaceReferences)
-        }
-    })
-}
-
-function replaceCssReferences(css, ids, replaceReferences) {
-    const styleSheet = new CSSStyleSheet()
-    styleSheet.replaceSync(css)
-
-    const updateRules = (rules) => {
-        Array.from(rules).forEach((rule) => {
-            if (rule.selectorText) {
-                rule.selectorText = rule.selectorText.replace(/#([\w-]+)/g, (match, id) => (
-                    ids.has(id) ? `#${ids.get(id)}` : match
-                ))
-            }
-            if (rule.style) {
-                Array.from(rule.style).forEach((property) => {
-                    const value = rule.style.getPropertyValue(property)
-                    const updatedValue = replaceReferences(value)
-                    if (updatedValue !== value) {
-                        rule.style.setProperty(property, updatedValue, rule.style.getPropertyPriority(property))
-                    }
-                })
-            }
-            if (rule.cssRules) updateRules(rule.cssRules)
-        })
-    }
-
-    updateRules(styleSheet.cssRules)
-    return Array.from(styleSheet.cssRules, (rule) => rule.cssText).join('\n')
-}
-
-function copyImageLayout(imageElement, sourceSvg) {
-    for (const attribute of Array.from(imageElement.attributes)) {
-        if (attribute.name === 'href' || attribute.name === 'xlink:href') continue
-        sourceSvg.setAttribute(attribute.name, attribute.value)
-    }
-}
-
-function isSvgBlob(blob) {
-    return /^image\/svg\+xml(?:;|$)/i.test(blob.type)
 }
 
 /**
@@ -223,7 +135,7 @@ export async function inlineSvgImages(svgString) {
     }
 
     const images = Array.from(svg.querySelectorAll('image'))
-    await Promise.all(images.map(async (img, index) => {
+    await Promise.all(images.map(async (img) => {
         const href = img.getAttribute('href') || img.getAttribute('xlink:href')
         if (!href || href.startsWith('data:')) return
 
@@ -245,10 +157,6 @@ export async function inlineSvgImages(svgString) {
                 return
             }
             const blob = await response.blob()
-            if (isSvgBlob(blob)) {
-                await inlineSvgBlob(blob, img, index)
-                return
-            }
             const dataUrl = await blobToDataUrl(blob)
             img.setAttribute('href', dataUrl)
             img.setAttribute('xlink:href', dataUrl)
