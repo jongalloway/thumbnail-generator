@@ -37,4 +37,8 @@ describe('wrapTopicText', () => {
         expect(wrapTopicText('This is an            exciting post', 23, 3))
             .toEqual(['This is an', 'exciting post', ''])
     })
+
+    it('does not exceed maxLines when the limit is one line', () => {
+        expect(wrapTopicText('a b', 1, 1)).toEqual(['a b'])
+    })
 })

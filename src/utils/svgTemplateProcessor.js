@@ -66,6 +66,11 @@ export function wrapTopicText(topic, maxCharsPerLine = 25, maxLines = 3) {
         if (nextLine.length <= maxCharsPerLine || !currentLine.trim()) {
             currentLine = nextLine;
         } else {
+            if (lines.length >= maxLines - 1) {
+                const remainingText = tokens.slice(index).join('').trim();
+                lines.push(currentLine + remainingText);
+                break;
+            }
             if (currentLine.trim()) lines.push(currentLine.trimEnd());
             currentLine = token;
             if (lines.length >= maxLines - 1) {
