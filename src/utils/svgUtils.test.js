@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { escapeXml, inlineSvgImages, parseResolution, wrapText } from './svgUtils'
+import { escapeXml, inlineSvgImages, parseResolution, wrapText, wrapTextToWidth } from './svgUtils'
 
 afterEach(() => {
     vi.unstubAllGlobals()
@@ -25,6 +25,15 @@ describe('wrapText', () => {
     it('returns an empty array for empty input', () => {
         expect(wrapText('', 10)).toEqual([])
     })
+
+    it('preserves explicit line breaks', () => {
+        expect(wrapText('first line\nsecond line', 20)).toEqual(['first line', 'second line'])
+    })
+
+    it('counts repeated spaces when wrapping by character limit', () => {
+        expect(wrapText('This is an            exciting post', 23))
+            .toEqual(['This is an', 'exciting post'])
+    })
 })
 
 describe('parseResolution', () => {
@@ -35,6 +44,22 @@ describe('parseResolution', () => {
     it('falls back to 1920x1080 for invalid input', () => {
         expect(parseResolution('garbage')).toEqual([1920, 1080])
         expect(parseResolution(undefined)).toEqual([1920, 1080])
+    })
+})
+
+describe('wrapTextToWidth', () => {
+    it('preserves explicit line breaks while wrapping each line', () => {
+        const ctx = { measureText: (text) => ({ width: text.length }) }
+
+        expect(wrapTextToWidth('first line\nsecond line', 20, ctx, '16px sans-serif'))
+            .toEqual(['first line', 'second line'])
+    })
+
+    it('uses repeated spaces when deciding where to wrap', () => {
+        const ctx = { measureText: (text) => ({ width: text.length }) }
+
+        expect(wrapTextToWidth('This is an            exciting post', 23, ctx, '16px sans-serif'))
+            .toEqual(['This is an', 'exciting post'])
     })
 })
 
