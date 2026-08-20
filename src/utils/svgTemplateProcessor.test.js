@@ -33,13 +33,12 @@ describe('wrapTopicText', () => {
         expect(joined).toBe('the quick brown fox the the lazy dog the end')
     })
 
-    it('uses repeated spaces as an explicit wrapping point', () => {
-        expect(wrapTopicText('This is an  exciting post', 100, 3))
+    it('counts repeated spaces when deciding where the topic wraps', () => {
+        expect(wrapTopicText('This is an            exciting post', 23, 3))
             .toEqual(['This is an', 'exciting post', ''])
     })
 
     it('does not exceed maxLines when the limit is one line', () => {
         expect(wrapTopicText('a b', 1, 1)).toEqual(['a b'])
-        expect(wrapTopicText('a  b', 100, 1)).toEqual(['a b'])
     })
 })

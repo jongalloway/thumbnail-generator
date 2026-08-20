@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react'
-import { escapeXml, wrapTextToWidth, parseResolution, generateUniqueId, getTextMeasureContext } from '../utils/svgUtils'
+import { escapeXml, escapeXmlPreservingSpaces, wrapTextToWidth, parseResolution, generateUniqueId, getTextMeasureContext } from '../utils/svgUtils'
 
 // Image layout constants - derived from example SVG files
 const CIRCLE_CENTER_X_RATIO = 0.878
@@ -149,7 +149,7 @@ export function DotNetBlogTemplate({
         ${title ? `
           <text x="${titleX}" y="${titleY}" font-family="${fontFamily}" font-size="${titleFontSize}" font-weight="700" fill="${textColor}" style="line-height:1.1">
             ${titleLines.map((line, i) =>
-      `<tspan x="${titleX}" dy="${i === 0 ? 0 : titleLineHeight}">${escapeXml(line)}</tspan>`
+      `<tspan x="${titleX}" dy="${i === 0 ? 0 : titleLineHeight}">${escapeXmlPreservingSpaces(line)}</tspan>`
     ).join('')}
           </text>
         ` : ''}
@@ -158,7 +158,7 @@ export function DotNetBlogTemplate({
         ${subtitle ? `
           <text x="${titleX}" y="${subtitleY}" font-family="${fontFamily}" font-size="${subtitleFontSize}" font-weight="700" fill="${textColor}" style="line-height:1.1">
             ${subtitleLines.map((line, i) =>
-      `<tspan x="${titleX}" dy="${i === 0 ? 0 : subtitleLineHeight}">${escapeXml(line)}</tspan>`
+      `<tspan x="${titleX}" dy="${i === 0 ? 0 : subtitleLineHeight}">${escapeXmlPreservingSpaces(line)}</tspan>`
     ).join('')}
           </text>
         ` : ''}

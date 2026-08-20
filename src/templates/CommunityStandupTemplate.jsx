@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { escapeXml, parseResolution } from '../utils/svgUtils'
+import { escapeXml, escapeXmlPreservingSpaces, parseResolution } from '../utils/svgUtils'
 import { replaceTokens, wrapTopicText } from '../utils/svgTemplateProcessor'
 
 /**
@@ -312,10 +312,10 @@ export function CommunityStandupTemplate({
             // Content tokens
             PILL_LINE_1: escapeXml(effectiveLine1),
             PILL_LINE_2: escapeXml(effectiveLine2),
-            TOPIC_LINE_1: escapeXml(topicLines[0] || ''),
-            TOPIC_LINE_2: escapeXml(topicLines[1] || ''),
-            TOPIC_LINE_3: escapeXml(topicLines[2] || ''),
-            TOPIC_LINE_4: escapeXml(topicLines[3] || ''),
+            TOPIC_LINE_1: escapeXmlPreservingSpaces(topicLines[0] || ''),
+            TOPIC_LINE_2: escapeXmlPreservingSpaces(topicLines[1] || ''),
+            TOPIC_LINE_3: escapeXmlPreservingSpaces(topicLines[2] || ''),
+            TOPIC_LINE_4: escapeXmlPreservingSpaces(topicLines[3] || ''),
             GUEST_1: getGuestImage(0),
             GUEST_2: getGuestImage(1),
             GUEST_3: getGuestImage(2),
