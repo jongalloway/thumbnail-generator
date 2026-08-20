@@ -27,7 +27,7 @@ export function wrapText(text, maxChars) {
         let currentLine = ''
 
         tokens.forEach(token => {
-            if (/^\s{2,}$/.test(token)) {
+            if (/ {2,}/.test(token)) {
                 if (currentLine.trim()) lines.push(currentLine.trimEnd())
                 currentLine = ''
                 return
