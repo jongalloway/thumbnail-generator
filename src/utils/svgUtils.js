@@ -20,20 +20,25 @@ export function escapeXml(text) {
  */
 export function wrapText(text, maxChars) {
     if (!text) return []
-    const words = text.split(' ')
     const lines = []
-    let currentLine = ''
 
-    words.forEach(word => {
-        if ((currentLine + ' ' + word).trim().length <= maxChars) {
-            currentLine = (currentLine + ' ' + word).trim()
-        } else {
-            if (currentLine) lines.push(currentLine)
-            currentLine = word
-        }
+    text.split(/\r?\n/).forEach((paragraph) => {
+        const tokens = paragraph.match(/\s+|[^\s]+/g) || []
+        let currentLine = ''
+
+        tokens.forEach(token => {
+            const next = currentLine + token
+            if (/^\s+$/.test(token) || next.length <= maxChars) {
+                currentLine = next
+            } else {
+                if (currentLine.trim()) lines.push(currentLine.trimEnd())
+                currentLine = token.trimStart()
+            }
+        })
+
+        if (currentLine.trim()) lines.push(currentLine.trimEnd())
     })
 
-    if (currentLine) lines.push(currentLine)
     return lines
 }
 
@@ -47,22 +52,30 @@ export function wrapTextToWidth(text, maxWidth, ctx, font) {
     }
 
     ctx.font = font
-    const words = text.split(/\s+/).filter(Boolean)
     const lines = []
-    let current = ''
 
-    for (const word of words) {
-        const next = current ? `${current} ${word}` : word
-        if (ctx.measureText(next).width <= maxWidth) {
-            current = next
-            continue
+    text.split(/\r?\n/).forEach((paragraph) => {
+        const tokens = paragraph.match(/\s+|[^\s]+/g) || []
+        let current = ''
+
+        for (const token of tokens) {
+            const next = current + token
+            if (/^\s+$/.test(token)) {
+                current = next
+                continue
+            }
+            if (ctx.measureText(next).width <= maxWidth) {
+                current = next
+                continue
+            }
+
+            if (current.trim()) lines.push(current.trimEnd())
+            current = token.trimStart()
         }
 
-        if (current) lines.push(current)
-        current = word
-    }
+        if (current.trim()) lines.push(current.trimEnd())
+    })
 
-    if (current) lines.push(current)
     return lines
 }
 

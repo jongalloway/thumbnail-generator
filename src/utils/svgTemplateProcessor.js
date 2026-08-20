@@ -52,27 +52,38 @@ export function replaceTokens(svgContent, tokens) {
 export function wrapTopicText(topic, maxCharsPerLine = 25, maxLines = 3) {
     if (!topic) return ['', '', ''];
 
-    const words = topic.split(' ');
+    const tokens = topic.trim().match(/\s+|[^\s]+/g) || [];
     const lines = [];
     let currentLine = '';
 
-    for (const [index, word] of words.entries()) {
-        if (currentLine.length + word.length + 1 <= maxCharsPerLine) {
-            currentLine = currentLine ? `${currentLine} ${word}` : word;
+    for (const [index, token] of tokens.entries()) {
+        if (/^\s+$/.test(token)) {
+            currentLine += token;
+            continue;
+        }
+
+        const nextLine = currentLine + token;
+        if (nextLine.length <= maxCharsPerLine || !currentLine.trim()) {
+            currentLine = nextLine;
         } else {
-            if (currentLine) lines.push(currentLine);
-            currentLine = word;
+            if (lines.length >= maxLines - 1) {
+                const remainingText = tokens.slice(index).join('').trim();
+                lines.push(currentLine + remainingText);
+                break;
+            }
+            if (currentLine.trim()) lines.push(currentLine.trimEnd());
+            currentLine = token;
             if (lines.length >= maxLines - 1) {
                 // Last line - add remaining words
-                const remainingWords = words.slice(index);
-                lines.push(remainingWords.join(' '));
+                const remainingText = tokens.slice(index).join('').trim();
+                lines.push(currentLine + remainingText.slice(token.length));
                 break;
             }
         }
     }
 
-    if (currentLine && lines.length < maxLines) {
-        lines.push(currentLine);
+    if (currentLine.trim() && lines.length < maxLines) {
+        lines.push(currentLine.trimEnd());
     }
 
     // Pad to maxLines
