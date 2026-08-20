@@ -27,6 +27,12 @@ export function wrapText(text, maxChars) {
         let currentLine = ''
 
         tokens.forEach(token => {
+            if (/^\s{2,}$/.test(token)) {
+                if (currentLine.trim()) lines.push(currentLine.trimEnd())
+                currentLine = ''
+                return
+            }
+
             const next = currentLine + token
             if (/^\s+$/.test(token) || next.length <= maxChars) {
                 currentLine = next
@@ -59,6 +65,12 @@ export function wrapTextToWidth(text, maxWidth, ctx, font) {
         let current = ''
 
         for (const token of tokens) {
+            if (/^\s{2,}$/.test(token)) {
+                if (current.trim()) lines.push(current.trimEnd())
+                current = ''
+                continue
+            }
+
             const next = current + token
             if (/^\s+$/.test(token)) {
                 current = next

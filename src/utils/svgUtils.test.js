@@ -30,8 +30,8 @@ describe('wrapText', () => {
         expect(wrapText('first line\nsecond line', 20)).toEqual(['first line', 'second line'])
     })
 
-    it('counts repeated spaces when wrapping by character limit', () => {
-        expect(wrapText('This is an            exciting post', 23))
+    it('uses repeated spaces as an explicit wrapping point', () => {
+        expect(wrapText('This is an  exciting post', 100))
             .toEqual(['This is an', 'exciting post'])
     })
 })
@@ -55,10 +55,10 @@ describe('wrapTextToWidth', () => {
             .toEqual(['first line', 'second line'])
     })
 
-    it('uses repeated spaces when deciding where to wrap', () => {
+    it('uses repeated spaces as an explicit wrapping point', () => {
         const ctx = { measureText: (text) => ({ width: text.length }) }
 
-        expect(wrapTextToWidth('This is an            exciting post', 23, ctx, '16px sans-serif'))
+        expect(wrapTextToWidth('This is an  exciting post', 100, ctx, '16px sans-serif'))
             .toEqual(['This is an', 'exciting post'])
     })
 })
