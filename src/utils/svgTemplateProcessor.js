@@ -57,6 +57,17 @@ export function wrapTopicText(topic, maxCharsPerLine = 25, maxLines = 3) {
     let currentLine = '';
 
     for (const [index, token] of tokens.entries()) {
+        if (/ {2,}/.test(token)) {
+            if (lines.length >= maxLines - 1) {
+                const remainingText = tokens.slice(index + 1).join('').trim();
+                currentLine = `${currentLine.trimEnd()} ${remainingText}`.trim();
+                break;
+            }
+            if (currentLine.trim()) lines.push(currentLine.trimEnd());
+            currentLine = '';
+            continue;
+        }
+
         if (/^\s+$/.test(token)) {
             currentLine += token;
             continue;
