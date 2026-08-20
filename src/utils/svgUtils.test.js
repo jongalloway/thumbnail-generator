@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { escapeXml, inlineSvgImages, parseResolution, wrapText, wrapTextToWidth } from './svgUtils'
+import { escapeXml, escapeXmlPreservingSpaces, inlineSvgImages, parseResolution, wrapText, wrapTextToWidth } from './svgUtils'
 
 afterEach(() => {
     vi.unstubAllGlobals()
@@ -17,6 +17,12 @@ describe('escapeXml', () => {
     })
 })
 
+describe('escapeXmlPreservingSpaces', () => {
+    it('keeps repeated spaces visible in SVG text', () => {
+        expect(escapeXmlPreservingSpaces('one   two & three')).toBe('one\u00a0\u00a0\u00a0two &amp; three')
+    })
+})
+
 describe('wrapText', () => {
     it('wraps words within the character limit', () => {
         expect(wrapText('one two three four', 8)).toEqual(['one two', 'three', 'four'])
@@ -30,8 +36,8 @@ describe('wrapText', () => {
         expect(wrapText('first line\nsecond line', 20)).toEqual(['first line', 'second line'])
     })
 
-    it('uses repeated spaces as an explicit wrapping point', () => {
-        expect(wrapText('This is an  exciting post', 100))
+    it('counts repeated spaces when wrapping by character limit', () => {
+        expect(wrapText('This is an            exciting post', 23))
             .toEqual(['This is an', 'exciting post'])
     })
 })
@@ -55,10 +61,10 @@ describe('wrapTextToWidth', () => {
             .toEqual(['first line', 'second line'])
     })
 
-    it('uses repeated spaces as an explicit wrapping point', () => {
+    it('uses repeated spaces when deciding where to wrap', () => {
         const ctx = { measureText: (text) => ({ width: text.length }) }
 
-        expect(wrapTextToWidth('This is an  exciting post', 100, ctx, '16px sans-serif'))
+        expect(wrapTextToWidth('This is an            exciting post', 23, ctx, '16px sans-serif'))
             .toEqual(['This is an', 'exciting post'])
     })
 })

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { escapeXml, getTextMeasureContext, parseResolution, wrapTextToWidth } from '../utils/svgUtils'
+import { escapeXml, escapeXmlPreservingSpaces, getTextMeasureContext, parseResolution, wrapTextToWidth } from '../utils/svgUtils'
 import { replaceTokens } from '../utils/svgTemplateProcessor'
 import { wrapSpeakerNames } from '../utils/speakerNameLines'
 
@@ -71,9 +71,9 @@ export function AzureDevelopersLiveTemplate({ values, resolution }) {
         while (nameLines.length < 2) nameLines.push('')
         const getSpeaker = index => speakers[index]?.dataUrl || speakers[index]?.url || ''
         const tokens = {
-            TOPIC_LINE_1: escapeXml(topicLines[0]),
-            TOPIC_LINE_2: escapeXml(topicLines[1]),
-            TOPIC_LINE_3: escapeXml(topicLines[2]),
+            TOPIC_LINE_1: escapeXmlPreservingSpaces(topicLines[0]),
+            TOPIC_LINE_2: escapeXmlPreservingSpaces(topicLines[1]),
+            TOPIC_LINE_3: escapeXmlPreservingSpaces(topicLines[2]),
             SPEAKER_NAMES_LINE_1: escapeXml(nameLines[0]),
             SPEAKER_NAMES_LINE_2: escapeXml(nameLines[1]),
             SPEAKER_1: getSpeaker(0),

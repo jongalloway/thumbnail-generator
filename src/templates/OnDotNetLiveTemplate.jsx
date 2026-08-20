@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react'
-import { escapeXml, getTextMeasureContext, parseResolution, wrapTextToWidth } from '../utils/svgUtils'
+import { escapeXml, escapeXmlPreservingSpaces, getTextMeasureContext, parseResolution, wrapTextToWidth } from '../utils/svgUtils'
 import { replaceTokens } from '../utils/svgTemplateProcessor'
 
 // Template paths for different guest counts
@@ -129,9 +129,9 @@ export function OnDotNetLiveTemplate({
 
         const tokens = {
             TITLE: escapeXml(title),
-            TITLE_LINE_1: escapeXml(titleLine1),
-            TITLE_LINE_2: escapeXml(titleLine2),
-            TITLE_LINE_3: escapeXml(titleLine3),
+            TITLE_LINE_1: escapeXmlPreservingSpaces(titleLine1),
+            TITLE_LINE_2: escapeXmlPreservingSpaces(titleLine2),
+            TITLE_LINE_3: escapeXmlPreservingSpaces(titleLine3),
             GUEST_1_NAME: escapeXml(guest1Name),
             GUEST_2_NAME: escapeXml(guest2Name),
             DAY: escapeXml(day),
