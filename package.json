@@ -32,7 +32,7 @@
     "globals": "^17.11.0",
     "jsdom": "^30.0.1",
     "vite": "^8.2.1",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "overrides": {
     "@babel/core": "^7.29.6"
