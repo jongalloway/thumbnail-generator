@@ -14,7 +14,7 @@
       <stop offset="100%" style="stop-color:#226dd1;stop-opacity:1" id="stop2" />
     </linearGradient>
     <clipPath id="guest1Clip">
-      <circle cx="1451.99035" cy="518.009675" r="240.72112" id="circle2" />
+         <circle cx="1451.99035" cy="518.009675" r="300.9014" id="circle2" />
     </clipPath>
   </defs>
   <image
@@ -113,16 +113,16 @@
   <circle
      cx="1451.99035"
      cy="518.009675"
-     r="251.0193"
+     r="313.774125"
      fill="rgba(37, 6, 87, 0.43)"
      id="circle7"
      style="stroke-width:.5" />
   <image
      xlink:href="__GUEST_1__"
-     x="1211.26923"
-     y="277.288555"
-     width="481.44224"
-     height="481.44224"
+     x="1151.08895"
+     y="217.108275"
+     width="601.8028"
+     height="601.8028"
      clip-path="url(#guest1Clip)"
      preserveAspectRatio="xMidYMid slice"
      id="image7" />
