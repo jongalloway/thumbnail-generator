@@ -22,7 +22,7 @@ describe('CommunityStandupTemplate', () => {
         expect(getCommunityStandupGuestCount([{}, {}, {}, {}, {}])).toBe(4)
     })
 
-    it('centers a same-size circle between the two-guest circles', () => {
+    it('centers a 25% larger circle between the two-guest circles', () => {
         const oneGuest = readTemplate('one-guest.svg')
         const twoGuests = readTemplate('two-guests.svg')
         const singleCircle = oneGuest.querySelector('#circle7')
@@ -34,7 +34,7 @@ describe('CommunityStandupTemplate', () => {
 
         expect(Math.abs(Number(singleCircle.getAttribute('cx')) - midpointX)).toBeLessThan(20)
         expect(Math.abs(Number(singleCircle.getAttribute('cy')) - midpointY)).toBeLessThan(20)
-        expect(Number(singleCircle.getAttribute('r'))).toBeCloseTo(Number(firstCircle.getAttribute('rx')))
-        expect(Number(singleCircle.getAttribute('r'))).toBeCloseTo(Number(secondCircle.getAttribute('r')))
+        expect(Number(singleCircle.getAttribute('r'))).toBeCloseTo(Number(firstCircle.getAttribute('rx')) * 1.25)
+        expect(Number(singleCircle.getAttribute('r'))).toBeCloseTo(Number(secondCircle.getAttribute('r')) * 1.25)
     })
 })
