@@ -126,7 +126,7 @@ export const TEMPLATES = {
                 id: 'guests',
                 type: FIELD_TYPES.IMAGE_ARRAY,
                 label: 'Guest Photos',
-                helperText: 'Upload 2-4 guest photos (template auto-selects based on count)',
+                helperText: 'Upload 1-4 guest photos (template auto-selects based on count)',
                 maxItems: 4,
             },
             {

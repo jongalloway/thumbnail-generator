@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1920"
+   height="1080"
+   viewBox="0 0 1920 1080"
+   version="1.1"
+   id="svg8"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs id="defs3">
+    <linearGradient id="pillGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#b53fc4;stop-opacity:1" id="stop1" />
+      <stop offset="100%" style="stop-color:#226dd1;stop-opacity:1" id="stop2" />
+    </linearGradient>
+    <clipPath id="guest1Clip">
+      <circle cx="1451.99035" cy="518.009675" r="240.72112" id="circle2" />
+    </clipPath>
+  </defs>
+  <image
+     xlink:href="__BACKGROUND__"
+     x="0"
+     y="0"
+     width="1920"
+     height="1080"
+     preserveAspectRatio="xMidYMid slice"
+     id="image3" />
+  <g display="__PILL_DISPLAY__">
+    <rect
+       x="50"
+       y="__PILL_Y__"
+       width="550"
+       height="__PILL_HEIGHT__"
+       rx="__PILL_RY__"
+       ry="__PILL_RY__"
+       fill="url(#pillGradient)"
+       id="rect3" />
+    <text
+       x="325"
+       y="__PILL_TEXT_1_Y__"
+       font-family="Segoe UI, sans-serif"
+       font-size="__PILL_FONT_SIZE__"
+       font-weight="600"
+       fill="#ffffff"
+       text-anchor="middle"
+       id="text3">__PILL_LINE_1__</text>
+    <text
+       x="325"
+       y="__PILL_TEXT_2_Y__"
+       font-family="Segoe UI, sans-serif"
+       font-size="__PILL_FONT_SIZE__"
+       font-weight="600"
+       fill="#ffffff"
+       text-anchor="middle"
+       id="text4">__PILL_LINE_2__</text>
+  </g>
+  <text
+     x="55"
+     y="__TOPIC_LINE_1_Y__"
+     font-family="Segoe UI, sans-serif"
+     font-size="__TOPIC_FONT_SIZE__"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="text5">__TOPIC_LINE_1__</text>
+  <text
+     x="55"
+     y="__TOPIC_LINE_2_Y__"
+     font-family="Segoe UI, sans-serif"
+     font-size="__TOPIC_FONT_SIZE__"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="text6">__TOPIC_LINE_2__</text>
+  <text
+     x="55"
+     y="__TOPIC_LINE_3_Y__"
+     font-family="Segoe UI, sans-serif"
+     font-size="__TOPIC_FONT_SIZE__"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="text7">__TOPIC_LINE_3__</text>
+  <text
+     x="55"
+     y="__TOPIC_LINE_4_Y__"
+     font-family="Segoe UI, sans-serif"
+     font-size="__TOPIC_FONT_SIZE__"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="text7b">__TOPIC_LINE_4__</text>
+  <text
+     x="55"
+     y="__GUEST_NAME_LINE_1_Y__"
+     font-family="Segoe UI, sans-serif"
+     font-size="__GUEST_NAME_FONT_SIZE__"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="guestName1">__GUEST_NAME_LINE_1__</text>
+  <text
+     x="55"
+     y="__GUEST_NAME_LINE_2_Y__"
+     font-family="Segoe UI, sans-serif"
+     font-size="__GUEST_NAME_FONT_SIZE__"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="guestName2">__GUEST_NAME_LINE_2__</text>
+  <text
+     x="55"
+     y="__GUEST_NAME_LINE_3_Y__"
+     font-family="Segoe UI, sans-serif"
+     font-size="__GUEST_NAME_FONT_SIZE__"
+     font-weight="700"
+     fill="#0f0f0f"
+     id="guestName3">__GUEST_NAME_LINE_3__</text>
+  <circle
+     cx="1451.99035"
+     cy="518.009675"
+     r="251.0193"
+     fill="rgba(37, 6, 87, 0.43)"
+     id="circle7"
+     style="stroke-width:.5" />
+  <image
+     xlink:href="__GUEST_1__"
+     x="1211.26923"
+     y="277.288555"
+     width="481.44224"
+     height="481.44224"
+     clip-path="url(#guest1Clip)"
+     preserveAspectRatio="xMidYMid slice"
+     id="image7" />
+</svg>
