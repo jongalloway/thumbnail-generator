@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { getCommunityStandupGuestCount } from '../utils/communityStandupGuests'
 import { escapeXml, escapeXmlPreservingSpaces, parseResolution } from '../utils/svgUtils'
 import { replaceTokens, wrapTopicText } from '../utils/svgTemplateProcessor'
 
@@ -10,6 +11,7 @@ import { replaceTokens, wrapTopicText } from '../utils/svgTemplateProcessor'
  * sizing, and styling without modifying this JSX file.
  * 
  * Template files:
+ * - one-guest.svg: Layout for 1 guest photo
  * - two-guests.svg: Layout for 2 guest photos
  * - three-guests.svg: Layout for 3 guest photos  
  * - four-guests.svg: Layout for 4 guest photos
@@ -30,6 +32,7 @@ import { replaceTokens, wrapTopicText } from '../utils/svgTemplateProcessor'
 
 // Template paths for different guest counts
 const TEMPLATE_PATHS = {
+    1: '/thumbnail-generator/templates/dotnet-community-standup/one-guest.svg',
     2: '/thumbnail-generator/templates/dotnet-community-standup/two-guests.svg',
     3: '/thumbnail-generator/templates/dotnet-community-standup/three-guests.svg',
     4: '/thumbnail-generator/templates/dotnet-community-standup/four-guests.svg',
@@ -151,8 +154,8 @@ export function CommunityStandupTemplate({
 
     const { pillLine1 = '', pillLine2 = '', topic = '', guests = [], guestNames = '' } = values
 
-    // Auto-detect guest count from uploaded photos (clamp to 2-4)
-    const numGuests = Math.max(2, Math.min(4, guests.length || 2))
+    // Auto-detect guest count from uploaded photos (default to 2, clamp to 1-4)
+    const numGuests = getCommunityStandupGuestCount(guests)
 
     // Subscribe to template cache updates to re-render when templates finish loading
     useEffect(() => {
