@@ -230,6 +230,37 @@ input[type="text"]::placeholder {
   margin-top: var(--spacing-md);
 }
 
+.background-upload {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.background-upload-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.background-upload-preview img {
+  width: 48px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.background-upload-preview span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .upload-row {
   display: flex;
   align-items: center;

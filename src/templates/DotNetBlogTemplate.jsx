@@ -11,6 +11,10 @@ const OVERLAY_RECT_X_BASE = 1239
 const OVERLAY_RECT_Y_BASE = 110
 const OVERLAY_RECT_WIDTH_BASE = 950
 const OVERLAY_RECT_HEIGHT_BASE = 861
+const ARTWORK_X_BASE = 1010
+const ARTWORK_Y_BASE = 55
+const ARTWORK_WIDTH_BASE = 855
+const ARTWORK_HEIGHT_BASE = 970
 
 /**
  * .NET Blog Template
@@ -193,6 +197,12 @@ export function DotNetBlogTemplate({
           return `
           <circle cx="${circleCenterX}" cy="${circleCenterY}" r="${circleRadius}" fill="white" filter="url(#${uniqueId}-image-shadow)"/>
           <image href="${imgUrl}" x="${circleCenterX - circleRadius}" y="${circleCenterY - circleRadius}" width="${circleRadius * 2}" height="${circleRadius * 2}" clip-path="url(#${uniqueId}-circle-clip)" preserveAspectRatio="xMidYMid slice"/>
+        `
+        }
+
+        if (imageLayout === 'artwork') {
+          return `
+          <image href="${imgUrl}" x="${ARTWORK_X_BASE * scale}" y="${ARTWORK_Y_BASE * scale}" width="${ARTWORK_WIDTH_BASE * scale}" height="${ARTWORK_HEIGHT_BASE * scale}" preserveAspectRatio="xMidYMid meet"/>
         `
         }
 

@@ -68,18 +68,20 @@ export const TEMPLATES = {
                 label: 'Image Layout (optional)',
                 options: [
                     { value: 'none', label: 'None' },
+                    { value: 'artwork', label: 'Transparent PNG Overlay' },
                     { value: 'circle', label: 'Circle' },
                     { value: 'split', label: 'Split' },
-                    { value: 'overlay', label: 'Overlay' },
+                    { value: 'overlay', label: 'Rectangular Image Overlay' },
                 ],
                 defaultValue: 'none',
-                helperText: 'Note: Selecting an image layout will clear any selected logos',
+                helperText: 'Transparent PNG Overlay places unmasked artwork on the right. Rectangular Image Overlay crops the image to a fixed rectangle. Selecting either clears selected logos.',
             },
             {
                 id: 'layoutImage',
                 type: FIELD_TYPES.IMAGE,
                 label: 'Layout Image',
                 showWhen: { field: 'imageLayout', notEquals: 'none' },
+                helperText: 'Use a transparent PNG with Transparent PNG Overlay for a layered effect.',
             },
         ],
         defaultValues: {

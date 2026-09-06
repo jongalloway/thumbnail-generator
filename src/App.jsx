@@ -9,7 +9,7 @@ import { OnDotNetLiveTemplate } from './templates/OnDotNetLiveTemplate'
 import { AzureDevelopersLiveTemplate } from './templates/AzureDevelopersLiveTemplate'
 
 // Components
-import { TemplateSelector, ImageArrayField, ImageField, LogoArrayField } from './components'
+import { BackgroundField, TemplateSelector, ImageArrayField, ImageField, LogoArrayField } from './components'
 
 // Hooks
 import { useToast } from './hooks/useToast'
@@ -200,7 +200,7 @@ function App() {
   }, [selectedTemplateId])
 
   useEffect(() => {
-    if (selectedBackground) {
+    if (selectedBackground && !selectedBackground.isUploaded) {
       persistSetting('backgroundId', selectedBackground.id)
     }
   }, [selectedBackground])
@@ -238,7 +238,7 @@ function App() {
 
   // Also persist per-template background when it changes
   useEffect(() => {
-    if (selectedBackground) {
+    if (selectedBackground && !selectedBackground.isUploaded) {
       persistSetting(`backgroundId_${selectedTemplateId}`, selectedBackground.id)
     }
   }, [selectedBackground, selectedTemplateId])
@@ -395,29 +395,24 @@ function App() {
           <hr style={{ margin: 'var(--spacing-md) 0', border: 'none', borderTop: '1px solid var(--color-border)' }} />
 
           {/* Background Selection */}
-          {!selectedTemplate?.usesFixedBackground && <div className="control-group">
-            <label htmlFor="background-select">Background</label>
-            <select
-              id="background-select"
-              value={selectedBackground?.id || ''}
-              onChange={(e) => {
-                const bg = backgrounds.find(b => b.id === e.target.value)
-                setSelectedBackground(bg)
-                if (bg) {
-                  setVariant(bg.variant)
-                  // Prefill the (still editable) Standup Name for known backgrounds
-                  if (selectedTemplateId === 'dotnet-community-standup') {
-                    const standupName = STANDUP_NAME_BY_BACKGROUND[bg.id]
-                    if (standupName) handleFieldChange('pillLine1', standupName)
-                  }
+          {!selectedTemplate?.usesFixedBackground && (
+            <BackgroundField
+              backgrounds={backgrounds}
+              value={selectedBackground}
+              variant={variant}
+              showToast={showToast}
+              onChange={(background) => {
+                if (!background) return
+                setSelectedBackground(background)
+                setVariant(background.variant)
+                // Prefill the (still editable) Standup Name for known backgrounds
+                if (!background.isUploaded && selectedTemplateId === 'dotnet-community-standup') {
+                  const standupName = STANDUP_NAME_BY_BACKGROUND[background.id]
+                  if (standupName) handleFieldChange('pillLine1', standupName)
                 }
               }}
-            >
-              {backgrounds.map(bg => (
-                <option key={bg.id} value={bg.id}>{bg.name}</option>
-              ))}
-            </select>
-          </div>}
+            />
+          )}
 
           {/* Variant Selection - only show for templates that use it */}
           {selectedTemplateId === 'dotnet-blog' && (
