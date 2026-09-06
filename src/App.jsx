@@ -256,7 +256,7 @@ function App() {
   const generateSvg = useCallback(() => generateSvgRef.current(), [])
 
   // Export functionality
-  const { exportRaster, exportSvg, copyToClipboard } = useExport(generateSvg, resolution, showToast, fieldValues.title || fieldValues.topic)
+  const { exportRaster, exportSvg, exportPptx, copyToClipboard } = useExport(generateSvg, resolution, showToast, fieldValues.title || fieldValues.topic)
 
   const handleExportRaster = useCallback(() => {
     exportRaster(exportFormat)
@@ -471,6 +471,9 @@ function App() {
             </button>
             <button type="button" className="btn btn-secondary" onClick={exportSvg}>
               Export as SVG
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={exportPptx}>
+              Export as PPTX
             </button>
           </div>
         </section>

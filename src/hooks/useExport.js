@@ -1,5 +1,7 @@
 import { useCallback } from 'react'
-import { parseResolution, inlineSvgImages } from '../utils/svgUtils'
+import { blobToDataUrl, parseResolution, inlineSvgImages, flattenNestedSvgImages } from '../utils/svgUtils'
+
+const PPTX_SLIDE_WIDTH = 13.333
 
 /**
  * Convert a title string to kebab-case for use in filenames
@@ -14,7 +16,7 @@ function toKebabCase(title) {
 }
 
 /**
- * Hook for exporting thumbnails as raster images or SVG
+ * Hook for exporting thumbnails as raster images, SVG, or PowerPoint
  */
 export function useExport(generateSvg, resolution, showToast, title) {
     // Export as raster (JPG/PNG/WEBP)
@@ -99,6 +101,48 @@ export function useExport(generateSvg, resolution, showToast, title) {
         }
     }, [generateSvg, showToast, title])
 
+    // Export a one-slide presentation containing the thumbnail as an SVG image.
+    const exportPptx = useCallback(async () => {
+        const [width, height] = parseResolution(resolution)
+
+        try {
+            const inlinedSvg = await inlineSvgImages(generateSvg())
+            const powerpointCompatibleSvg = flattenNestedSvgImages(inlinedSvg)
+            const svgDataUrl = await blobToDataUrl(new Blob([powerpointCompatibleSvg], { type: 'image/svg+xml;charset=utf-8' }))
+            const slideHeight = PPTX_SLIDE_WIDTH * (height / width)
+            const { default: PptxGenJS } = await import('pptxgenjs')
+            const pptx = new PptxGenJS()
+
+            pptx.author = 'Thumbnail Generator'
+            pptx.subject = 'Editable SVG thumbnail'
+            pptx.title = title || 'Thumbnail'
+            pptx.defineLayout({ name: 'THUMBNAIL', width: PPTX_SLIDE_WIDTH, height: slideHeight })
+            pptx.layout = 'THUMBNAIL'
+
+            const slide = pptx.addSlide()
+            slide.addImage({
+                data: svgDataUrl,
+                x: 0,
+                y: 0,
+                w: PPTX_SLIDE_WIDTH,
+                h: slideHeight,
+                altText: title || 'Generated thumbnail',
+            })
+
+            const blob = await pptx.write({ outputType: 'blob' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `${toKebabCase(title)}.pptx`
+            a.click()
+            URL.revokeObjectURL(url)
+            showToast('PPTX exported successfully!')
+        } catch (err) {
+            console.error('PPTX export failed:', err)
+            showToast('PPTX export failed. Try SVG export instead.', 'error')
+        }
+    }, [generateSvg, resolution, showToast, title])
+
     // Copy preview to clipboard as PNG
     const copyToClipboard = useCallback(async () => {
         const [width, height] = parseResolution(resolution)
@@ -147,6 +191,7 @@ export function useExport(generateSvg, resolution, showToast, title) {
     return {
         exportRaster,
         exportSvg,
+        exportPptx,
         copyToClipboard,
     }
 }
