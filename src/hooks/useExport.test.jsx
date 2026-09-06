@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useExport } from './useExport'
 
 const pptxMocks = vi.hoisted(() => ({
@@ -29,6 +29,10 @@ describe('useExport', () => {
         anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
         pptxMocks.addSlide.mockReturnValue({ addImage: pptxMocks.addImage })
         pptxMocks.write.mockResolvedValue(new Blob(['pptx']))
+    })
+
+    afterEach(() => {
+        anchorClick.mockRestore()
     })
 
     it('exports a custom-size slide containing the thumbnail as SVG', async () => {
