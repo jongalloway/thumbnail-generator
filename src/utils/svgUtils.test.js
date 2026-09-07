@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { escapeXml, escapeXmlPreservingSpaces, inlineSvgImages, parseResolution, wrapText, wrapTextToWidth } from './svgUtils'
+import { escapeXml, escapeXmlPreservingSpaces, flattenNestedSvgImages, inlineSvgImages, parseResolution, wrapText, wrapTextToWidth } from './svgUtils'
 
 afterEach(() => {
+    vi.restoreAllMocks()
     vi.unstubAllGlobals()
 })
 
@@ -110,5 +111,25 @@ describe('inlineSvgImages', () => {
         expect(image?.getAttribute('y')).toBe('20')
         expect(image?.getAttribute('href')).toMatch(/^data:image\/svg\+xml;base64,/)
         expect(image?.getAttribute('xlink:href')).toMatch(/^data:image\/svg\+xml;base64,/)
+    })
+})
+
+describe('flattenNestedSvgImages', () => {
+    it('merges base64 and URL-encoded SVG images into the outer document', () => {
+        const result = flattenNestedSvgImages(`
+            <svg xmlns="http://www.w3.org/2000/svg">
+                <image href="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAgMTAiPjxjaXJjbGUgY3g9IjUiIGN5PSI1IiByPSI1Ii8+PC9zdmc+" x="10" y="20" width="100" height="80" clip-path="url(#logo-clip)" />
+                <image href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2020%2020%22%3E%3Crect%20width%3D%2220%22%20height%3D%2220%22/%3E%3C/svg%3E" x="30" y="40" width="50" height="40" />
+            </svg>
+        `)
+
+        const parsed = new DOMParser().parseFromString(result, 'image/svg+xml')
+        const nestedSvgs = [...parsed.querySelectorAll('svg > svg')]
+        expect(parsed.querySelectorAll('image')).toHaveLength(0)
+        expect(nestedSvgs).toHaveLength(2)
+        expect(nestedSvgs[0].getAttribute('viewBox')).toBe('0 0 10 10')
+        expect(nestedSvgs[0].getAttribute('x')).toBe('10')
+        expect(nestedSvgs[0].hasAttribute('clip-path')).toBe(false)
+        expect(nestedSvgs[1].getAttribute('width')).toBe('50')
     })
 })
