@@ -334,12 +334,14 @@ input[type="text"]::placeholder {
 
 .export-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--spacing-sm);
   margin-top: var(--spacing-lg);
 }
 
 .export-actions .btn {
   flex: 1;
+  min-width: 8rem;
 }
 
 /* Preview Section */
@@ -371,11 +373,19 @@ input[type="text"]::placeholder {
   height: 100%;
 }
 
+.preview-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
 .btn-clipboard {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
-  margin: var(--spacing-sm) auto 0;
   padding: var(--spacing-xs) var(--spacing-md);
   font-size: 0.85rem;
   color: var(--color-text-muted);

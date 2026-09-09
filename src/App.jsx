@@ -17,7 +17,7 @@ import { useExport } from './hooks/useExport'
 import { loadPersistedSettings, persistSetting } from './hooks/usePersistedState'
 import { parseResolution } from './utils/svgUtils'
 import { STANDUP_NAME_BY_BACKGROUND, formatBackgroundLabel } from './utils/backgroundLabels'
-import { parseUrlState } from './utils/urlState'
+import { parseUrlState, buildShareUrl } from './utils/urlState'
 
 // Auto-discover logos using Vite's import.meta.glob
 const logoModules = import.meta.glob('../public/logos/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
@@ -139,7 +139,7 @@ function findBackgroundById(backgrounds, id) {
 function App() {
   // Load persisted settings on init
   const persistedSettings = useMemo(() => loadPersistedSettings(), [])
-  const urlState = useMemo(() => parseUrlState(window.location.search), [])
+  const urlState = useMemo(() => parseUrlState(window.location.search, discoveredLogos), [])
 
   // URL settings take precedence over localStorage when provided.
   const [selectedTemplateId, setSelectedTemplateId] = useState(() => {
@@ -261,6 +261,25 @@ function App() {
   const handleExportRaster = useCallback(() => {
     exportRaster(exportFormat)
   }, [exportRaster, exportFormat])
+
+  // Copy a shareable link with querystring parameters set from the current form fields
+  const handleCopyLink = useCallback(async () => {
+    const shareUrl = buildShareUrl({
+      templateId: selectedTemplateId,
+      backgroundId: selectedBackground?.isUploaded ? null : selectedBackground?.id,
+      resolution,
+      exportFormat,
+      fieldValues,
+    })
+
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      showToast('Link copied to clipboard!')
+    } catch (err) {
+      console.error('Copy link failed:', err)
+      showToast('Failed to copy link.', 'error')
+    }
+  }, [selectedTemplateId, selectedBackground, resolution, exportFormat, fieldValues, showToast])
 
   // Render field based on type
   const renderField = (field) => {
@@ -492,13 +511,18 @@ function App() {
               onGenerateSvg={setGenerateSvg}
             />
           </div>
-          <button type="button" className="btn btn-clipboard" onClick={copyToClipboard} title="Copy to clipboard">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M3 10V2.5A1.5 1.5 0 0 1 4.5 1H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            Copy to clipboard
-          </button>
+          <div className="preview-actions">
+            <button type="button" className="btn btn-clipboard" onClick={copyToClipboard} title="Copy to clipboard">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M3 10V2.5A1.5 1.5 0 0 1 4.5 1H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              Copy to clipboard
+            </button>
+            <button type="button" className="btn btn-clipboard" onClick={handleCopyLink} title="Copy a shareable link with the current settings">
+              🔗 Copy link
+            </button>
+          </div>
 
           <aside className="preview-help" aria-label="Instructions">
             <h3 className="preview-help-title">Quick tips</h3>
