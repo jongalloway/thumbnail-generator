@@ -43,16 +43,14 @@ export function replaceTokens(svgContent, tokens) {
 }
 
 /**
- * Split topic text into multiple lines based on character limit
- * @param {string} topic - The topic text
+ * Wrap a single paragraph's tokens (no explicit line breaks) into lines,
+ * dumping any overflow onto the final line once the line budget runs out.
+ * @param {string[]} tokens - Alternating word/whitespace tokens (from a `\s+|[^\s]+` match)
  * @param {number} maxCharsPerLine - Maximum characters per line
- * @param {number} maxLines - Maximum number of lines
- * @returns {string[]} - Array of lines
+ * @param {number} maxLines - Maximum number of lines for this paragraph
+ * @returns {string[]} - Array of produced lines (not padded)
  */
-export function wrapTopicText(topic, maxCharsPerLine = 25, maxLines = 3) {
-    if (!topic) return ['', '', ''];
-
-    const tokens = topic.trim().match(/\s+|[^\s]+/g) || [];
+function wrapParagraphTokens(tokens, maxCharsPerLine, maxLines) {
     const lines = [];
     let currentLine = '';
 
@@ -69,7 +67,7 @@ export function wrapTopicText(topic, maxCharsPerLine = 25, maxLines = 3) {
             if (lines.length >= maxLines - 1) {
                 const remainingText = tokens.slice(index).join('').trim();
                 lines.push(currentLine + remainingText);
-                break;
+                return lines;
             }
             if (currentLine.trim()) lines.push(currentLine.trimEnd());
             currentLine = token;
@@ -77,7 +75,7 @@ export function wrapTopicText(topic, maxCharsPerLine = 25, maxLines = 3) {
                 // Last line - add remaining words
                 const remainingText = tokens.slice(index).join('').trim();
                 lines.push(currentLine + remainingText.slice(token.length));
-                break;
+                return lines;
             }
         }
     }
@@ -86,12 +84,45 @@ export function wrapTopicText(topic, maxCharsPerLine = 25, maxLines = 3) {
         lines.push(currentLine.trimEnd());
     }
 
+    return lines;
+}
+
+/**
+ * Split topic text into multiple lines based on character limit.
+ * An explicit `\n` in the input forces a line break at that point; each
+ * resulting paragraph is then auto-wrapped to fit within the remaining
+ * line budget.
+ * @param {string} topic - The topic text
+ * @param {number} maxCharsPerLine - Maximum characters per line
+ * @param {number} maxLines - Maximum number of lines
+ * @returns {string[]} - Array of lines
+ */
+export function wrapTopicText(topic, maxCharsPerLine = 25, maxLines = 3) {
+    if (!topic) return Array(maxLines).fill('');
+
+    const paragraphs = topic.split(/\r?\n/);
+    const lines = [];
+
+    for (const paragraph of paragraphs) {
+        if (lines.length >= maxLines) break;
+
+        const trimmedParagraph = paragraph.trim();
+        if (!trimmedParagraph) {
+            lines.push('');
+            continue;
+        }
+
+        const tokens = trimmedParagraph.match(/\s+|[^\s]+/g) || [];
+        const remainingLines = maxLines - lines.length;
+        lines.push(...wrapParagraphTokens(tokens, maxCharsPerLine, remainingLines));
+    }
+
     // Pad to maxLines
     while (lines.length < maxLines) {
         lines.push('');
     }
 
-    return lines;
+    return lines.slice(0, maxLines);
 }
 
 /**
