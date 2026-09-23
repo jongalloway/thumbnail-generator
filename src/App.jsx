@@ -316,8 +316,8 @@ function App() {
       case FIELD_TYPES.TEXTAREA:
         return (
           <div key={field.id} className="control-group">
-            <label htmlFor={`field-${field.id}`}>
-              {field.label}
+            <div className="field-label">
+              <label htmlFor={`field-${field.id}`}>{field.label}</label>
               {field.allowLineBreaks && (
                 <span className="info-tooltip">
                   <button
@@ -337,7 +337,7 @@ function App() {
                   </span>
                 </span>
               )}
-            </label>
+            </div>
             <textarea
               id={`field-${field.id}`}
               value={value || ''}

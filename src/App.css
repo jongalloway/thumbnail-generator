@@ -77,7 +77,8 @@
   margin-bottom: var(--spacing-md);
 }
 
-.control-group label {
+.control-group > label,
+.field-label {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
