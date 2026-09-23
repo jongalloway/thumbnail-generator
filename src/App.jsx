@@ -22,10 +22,26 @@ import { parseUrlState, buildShareUrl } from './utils/urlState'
 // Auto-discover logos using Vite's import.meta.glob
 const logoModules = import.meta.glob('../public/logos/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
 
+const logoDisplayNames = {
+  aspire: 'Aspire',
+  azure: 'Microsoft Azure',
+  copilot: 'GitHub Copilot',
+  csharp: 'C#',
+  'csharp-dev-kit': 'C# Dev Kit',
+  dotnet: '.NET',
+  javascript: 'JavaScript',
+  'microsoft-foundry': 'Microsoft Foundry',
+  'microsoft-foundry-agent-framework': 'Microsoft Foundry Agent Framework',
+  nuget: 'NuGet',
+  typescript: 'TypeScript',
+  'visual-studio': 'Visual Studio',
+  'visual-studio-code': 'Visual Studio Code',
+}
+
 const discoveredLogos = Object.entries(logoModules).map(([path, url]) => {
   const filename = path.split('/').pop()
   const name = filename.replace(/\.[^.]+$/, '')
-  const displayName = name
+  const displayName = logoDisplayNames[name.toLowerCase()] || name
     .split(/[-_]/)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')

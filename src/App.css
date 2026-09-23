@@ -128,6 +128,7 @@ input[type="text"]::placeholder {
 }
 
 .logo-option {
+  position: relative;
   width: 48px;
   height: 48px;
   padding: var(--spacing-xs);
@@ -158,6 +159,32 @@ input[type="text"]::placeholder {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.logo-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + var(--spacing-xs));
+  z-index: 10;
+  width: max-content;
+  max-width: 220px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background: var(--color-text);
+  color: var(--color-surface);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.logo-option:hover .logo-tooltip,
+.logo-option:focus-visible .logo-tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .selected-logos {

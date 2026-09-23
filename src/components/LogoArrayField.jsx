@@ -78,8 +78,16 @@ export function LogoArrayField({
                             onClick={() => toggleLogo(logo)}
                             aria-pressed={value.some(l => l.id === logo.id)}
                             aria-label={`${logo.name} logo`}
+                            aria-describedby={`logo-tooltip-${logo.id}`}
                         >
                             <img src={logo.url} alt={logo.name} />
+                            <span
+                                id={`logo-tooltip-${logo.id}`}
+                                className="logo-tooltip"
+                                role="tooltip"
+                            >
+                                {logo.name}
+                            </span>
                         </button>
                     ))}
                 </div>
