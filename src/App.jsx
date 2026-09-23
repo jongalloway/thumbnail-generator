@@ -329,6 +329,43 @@ function App() {
           </div>
         )
 
+      case FIELD_TYPES.TEXTAREA:
+        return (
+          <div key={field.id} className="control-group">
+            <div className="field-label">
+              <label htmlFor={`field-${field.id}`}>{field.label}</label>
+              {field.allowLineBreaks && (
+                <span className="info-tooltip">
+                  <button
+                    type="button"
+                    className="info-tooltip-trigger"
+                    aria-describedby={`field-${field.id}-linebreak-tip`}
+                  >
+                    <span aria-hidden="true">i</span>
+                    <span className="visually-hidden">Line break tip</span>
+                  </button>
+                  <span
+                    id={`field-${field.id}-linebreak-tip`}
+                    role="tooltip"
+                    className="info-tooltip-text"
+                  >
+                    Press Enter to force a line break at that spot. Otherwise the text wraps automatically to fit.
+                  </span>
+                </span>
+              )}
+            </div>
+            <textarea
+              id={`field-${field.id}`}
+              value={value || ''}
+              onChange={(e) => handleFieldChange(field.id, e.target.value)}
+              placeholder={field.placeholder}
+              maxLength={field.maxLength}
+              rows={field.rows || 2}
+            />
+            {field.helperText && <small className="helper-text">{field.helperText}</small>}
+          </div>
+        )
+
       case FIELD_TYPES.SELECT:
         return (
           <div key={field.id} className="control-group">

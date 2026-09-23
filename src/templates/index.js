@@ -42,18 +42,22 @@ export const TEMPLATES = {
             },
             {
                 id: 'title',
-                type: FIELD_TYPES.TEXT,
+                type: FIELD_TYPES.TEXTAREA,
                 label: 'Title',
                 placeholder: 'Enter your title',
                 maxLength: 100,
                 required: true,
+                allowLineBreaks: true,
+                rows: 2,
             },
             {
                 id: 'subtitle',
-                type: FIELD_TYPES.TEXT,
+                type: FIELD_TYPES.TEXTAREA,
                 label: 'Subtitle (optional)',
                 placeholder: 'Enter subtitle',
                 maxLength: 150,
+                allowLineBreaks: true,
+                rows: 2,
             },
             {
                 id: 'logos',
@@ -118,11 +122,13 @@ export const TEMPLATES = {
             },
             {
                 id: 'topic',
-                type: FIELD_TYPES.TEXT,
+                type: FIELD_TYPES.TEXTAREA,
                 label: 'Episode Topic',
                 placeholder: 'e.g., Building AI apps with the new .NET AI template',
                 maxLength: 100,
                 required: true,
+                allowLineBreaks: true,
+                rows: 3,
             },
             {
                 id: 'guests',
@@ -156,11 +162,13 @@ export const TEMPLATES = {
         fields: [
             {
                 id: 'topic',
-                type: FIELD_TYPES.TEXT,
+                type: FIELD_TYPES.TEXTAREA,
                 label: 'Episode Topic',
                 placeholder: 'e.g., Build intelligent workflows with Logic Apps',
                 maxLength: 100,
                 required: true,
+                allowLineBreaks: true,
+                rows: 3,
             },
             {
                 id: 'speakers',
@@ -191,11 +199,13 @@ export const TEMPLATES = {
         fields: [
             {
                 id: 'title',
-                type: FIELD_TYPES.TEXT,
+                type: FIELD_TYPES.TEXTAREA,
                 label: 'Title',
                 placeholder: 'e.g., Building real-time apps with SignalR',
                 maxLength: 120,
                 required: true,
+                allowLineBreaks: true,
+                rows: 2,
             },
             {
                 id: 'guestCount',
