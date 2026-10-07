@@ -41,4 +41,24 @@ describe('wrapTopicText', () => {
     it('does not exceed maxLines when the limit is one line', () => {
         expect(wrapTopicText('a b', 1, 1)).toEqual(['a b'])
     })
+
+    it('treats an explicit newline as a forced line break', () => {
+        expect(wrapTopicText('Performance improvements\nin C# Dev Kit 11.0', 40, 3))
+            .toEqual(['Performance improvements', 'in C# Dev Kit 11.0', ''])
+    })
+
+    it('supports multiple forced line breaks that each fit on one line', () => {
+        expect(wrapTopicText('Performance\nimprovements in\nC# Dev Kit 11.0', 40, 3))
+            .toEqual(['Performance', 'improvements in', 'C# Dev Kit 11.0'])
+    })
+
+    it('still auto-wraps a paragraph that is too long after a forced line break', () => {
+        expect(wrapTopicText('Short\nA longer second paragraph that needs wrapping', 20, 3))
+            .toEqual(['Short', 'A longer second', 'paragraph that needs wrapping'])
+    })
+
+    it('stops once maxLines is reached across forced line breaks', () => {
+        expect(wrapTopicText('One\nTwo\nThree\nFour', 20, 3))
+            .toEqual(['One', 'Two', 'Three'])
+    })
 })

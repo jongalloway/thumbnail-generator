@@ -23,10 +23,26 @@ import { parseUrlState, buildShareUrl } from './utils/urlState'
 // Auto-discover logos using Vite's import.meta.glob
 const logoModules = import.meta.glob('../public/logos/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
 
+const logoDisplayNames = {
+  aspire: 'Aspire',
+  azure: 'Microsoft Azure',
+  copilot: 'GitHub Copilot',
+  csharp: 'C#',
+  'csharp-dev-kit': 'C# Dev Kit',
+  dotnet: '.NET',
+  javascript: 'JavaScript',
+  'microsoft-foundry': 'Microsoft Foundry',
+  'microsoft-foundry-agent-framework': 'Microsoft Foundry Agent Framework',
+  nuget: 'NuGet',
+  typescript: 'TypeScript',
+  'visual-studio': 'Visual Studio',
+  'visual-studio-code': 'Visual Studio Code',
+}
+
 const discoveredLogos = Object.entries(logoModules).map(([path, url]) => {
   const filename = path.split('/').pop()
   const name = filename.replace(/\.[^.]+$/, '')
-  const displayName = name
+  const displayName = logoDisplayNames[name.toLowerCase()] || name
     .split(/[-_]/)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
@@ -310,6 +326,43 @@ function App() {
               onChange={(e) => handleFieldChange(field.id, e.target.value)}
               placeholder={field.placeholder}
               maxLength={field.maxLength}
+            />
+            {field.helperText && <small className="helper-text">{field.helperText}</small>}
+          </div>
+        )
+
+      case FIELD_TYPES.TEXTAREA:
+        return (
+          <div key={field.id} className="control-group">
+            <div className="field-label">
+              <label htmlFor={`field-${field.id}`}>{field.label}</label>
+              {field.allowLineBreaks && (
+                <span className="info-tooltip">
+                  <button
+                    type="button"
+                    className="info-tooltip-trigger"
+                    aria-describedby={`field-${field.id}-linebreak-tip`}
+                  >
+                    <span aria-hidden="true">i</span>
+                    <span className="visually-hidden">Line break tip</span>
+                  </button>
+                  <span
+                    id={`field-${field.id}-linebreak-tip`}
+                    role="tooltip"
+                    className="info-tooltip-text"
+                  >
+                    Press Enter to force a line break at that spot. Otherwise the text wraps automatically to fit.
+                  </span>
+                </span>
+              )}
+            </div>
+            <textarea
+              id={`field-${field.id}`}
+              value={value || ''}
+              onChange={(e) => handleFieldChange(field.id, e.target.value)}
+              placeholder={field.placeholder}
+              maxLength={field.maxLength}
+              rows={field.rows || 2}
             />
             {field.helperText && <small className="helper-text">{field.helperText}</small>}
           </div>
