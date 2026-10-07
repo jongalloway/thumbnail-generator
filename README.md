@@ -51,6 +51,22 @@ Use `field.<id>` instead of `<id>` when preferred. Supported shared settings are
 
 The site is configured to deploy to GitHub Pages. Simply push to the main branch and the GitHub Actions workflow will build and deploy automatically.
 
+## Layout Templates
+
+Templates are selected from the **Layout Template** dropdown and each one exposes its own fields.
+
+### Microsoft Developer Blog
+
+Featured images for [developer.microsoft.com/blog](https://developer.microsoft.com/blog/), using developer.microsoft.com branding.
+
+- **Backgrounds** — 10 brand gradients, 7 solid colors, and 2 full-bleed cube backgrounds in matched light and dark sets. Built from the brand palette `#001632`, `#001F3B`, `#6631C2`, `#A89FD9`, `#D7C8EF`, `#DBDBDB`, `#F4F4F4`.
+- **Right-side Artwork** — supplied DevCom `cubes` or `ribbon` artwork, or `none`. The artwork sits in the right third so the title and subtitle keep the left two-thirds to themselves.
+- **Uploaded images** — transparent artwork, circle, split, and rectangular layouts use the same geometry as the .NET Blog image options. Uploaded images replace the bundled artwork.
+- **Text Scrim** — `off`, `subtle`, or `strong`. Use `strong` to keep text legible over the full-bleed plates.
+- **Precedence** — an uploaded image layout wins over selected logos, which win over the bundled artwork. Choose `none` for artwork to use the full width for text.
+
+These thumbnails intentionally carry no Microsoft logo.
+
 ## Adding New Backgrounds
 
 To add a new background, add an image (SVG, PNG, JPG/JPEG, GIF, or WEBP) to `public/backgrounds/`. The app automatically discovers all images in this directory - no manifest or code changes required!

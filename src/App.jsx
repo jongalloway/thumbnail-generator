@@ -4,6 +4,7 @@ import './App.css'
 // Template system
 import { TEMPLATES, getTemplate, getDefaultValues, getTemplateIds, FIELD_TYPES } from './templates'
 import { DotNetBlogTemplate } from './templates/DotNetBlogTemplate'
+import { MicrosoftDeveloperBlogTemplate } from './templates/MicrosoftDeveloperBlogTemplate'
 import { CommunityStandupTemplate } from './templates/CommunityStandupTemplate'
 import { OnDotNetLiveTemplate } from './templates/OnDotNetLiveTemplate'
 import { AzureDevelopersLiveTemplate } from './templates/AzureDevelopersLiveTemplate'
@@ -97,6 +98,7 @@ getTemplateIds().forEach(templateId => {
 // Template component mapping
 const templateComponents = {
   'dotnet-blog': DotNetBlogTemplate,
+  'microsoft-developer-blog': MicrosoftDeveloperBlogTemplate,
   'dotnet-community-standup': CommunityStandupTemplate,
   'on-dotnet-live': OnDotNetLiveTemplate,
   'azure-developers-live': AzureDevelopersLiveTemplate,
@@ -434,7 +436,7 @@ function App() {
           )}
 
           {/* Variant Selection - only show for templates that use it */}
-          {selectedTemplateId === 'dotnet-blog' && (
+          {(selectedTemplateId === 'dotnet-blog' || selectedTemplateId === 'microsoft-developer-blog') && (
             <div className="control-group">
               <label htmlFor="variant-select">Text Variant</label>
               <select
