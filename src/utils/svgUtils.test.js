@@ -41,6 +41,16 @@ describe('wrapText', () => {
         expect(wrapText('This is an            exciting post', 23))
             .toEqual(['This is an', 'exciting post'])
     })
+
+    it('splits a single token longer than the character limit', () => {
+        expect(wrapText('Microsoft.Extensions.DependencyInjection', 10))
+            .toEqual(['Microsoft.', 'Extensions', '.Dependenc', 'yInjection'])
+    })
+
+    it('splits an overlong token that follows shorter words', () => {
+        expect(wrapText('see https://example.com/a/very/long/path/here now', 12))
+            .toEqual(['see', 'https://exam', 'ple.com/a/ve', 'ry/long/path', '/here now'])
+    })
 })
 
 describe('parseResolution', () => {
@@ -67,6 +77,20 @@ describe('wrapTextToWidth', () => {
 
         expect(wrapTextToWidth('This is an            exciting post', 23, ctx, '16px sans-serif'))
             .toEqual(['This is an', 'exciting post'])
+    })
+
+    it('splits a single token wider than the column instead of overflowing it', () => {
+        const ctx = { measureText: (text) => ({ width: text.length }) }
+
+        expect(wrapTextToWidth('Microsoft.Extensions.DependencyInjection', 10, ctx, '16px sans-serif'))
+            .toEqual(['Microsoft.', 'Extensions', '.Dependenc', 'yInjection'])
+    })
+
+    it('splits an overlong token that follows shorter words', () => {
+        const ctx = { measureText: (text) => ({ width: text.length }) }
+
+        expect(wrapTextToWidth('see https://example.com/a/very/long/path/here now', 12, ctx, '16px sans-serif'))
+            .toEqual(['see', 'https://exam', 'ple.com/a/ve', 'ry/long/path', '/here now'])
     })
 })
 

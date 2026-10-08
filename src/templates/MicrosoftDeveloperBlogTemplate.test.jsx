@@ -157,6 +157,60 @@ describe('MicrosoftDeveloperBlogTemplate', () => {
         expect(circle.querySelector('[id$="-overlay-clip"]')).toBeNull()
     })
 
+    it('prevents the title from overlapping the subtitle even with many explicit line breaks', () => {
+        const doc = render({
+            title: 'Build\nDeploy\nScale\nMonitor',
+            subtitle: 'Tools\nGuides\nSamples\nUpdates\nReleases\nCommunity\nSupport',
+        })
+        const titleText = [...doc.querySelectorAll('text')].find(el => el.textContent.includes('Build'))
+        const subtitleText = [...doc.querySelectorAll('text')].find(el => el.textContent.includes('Tools'))
+        const titleTspans = [...titleText.querySelectorAll('tspan')]
+
+        const titleFontSize = parseFloat(titleText.getAttribute('font-size'))
+        const titleLineHeight = titleFontSize * 1.1
+        const titleBottomBaseline = parseFloat(titleText.getAttribute('y')) + (titleTspans.length - 1) * titleLineHeight
+        const subtitleTop = parseFloat(subtitleText.getAttribute('y'))
+
+        expect(titleBottomBaseline).toBeLessThanOrEqual(subtitleTop - titleFontSize)
+    })
+
+    it('caps an oversized subtitle block and marks the cut with an ellipsis', () => {
+        const doc = render({
+            title: 'Shipping faster',
+            subtitle: Array.from({ length: 10 }, (_, i) => `Point ${i}`).join('\n'),
+        })
+        const subtitleText = [...doc.querySelectorAll('text')].find(el => el.textContent.includes('Point 0'))
+        const subtitleTspans = [...subtitleText.querySelectorAll('tspan')]
+
+        expect(subtitleTspans.length).toBeLessThan(10)
+        expect(subtitleTspans.at(-1).textContent.endsWith('\u2026')).toBe(true)
+    })
+
+    it('truncates an extreme number of title line breaks even at the minimum font size', () => {
+        const doc = render({
+            title: Array.from({ length: 20 }, (_, i) => `Line ${i}`).join('\n'),
+            subtitle: 'Normal subtitle text',
+        })
+        const titleText = [...doc.querySelectorAll('text')].find(el => el.textContent.includes('Line 0'))
+        const titleTspans = [...titleText.querySelectorAll('tspan')]
+
+        expect(titleTspans.length).toBeLessThan(20)
+        expect(titleTspans.at(-1).textContent.endsWith('\u2026')).toBe(true)
+    })
+
+    it('breaks a long unbroken title token instead of letting it overflow the column', () => {
+        // jsdom's canvas measures text using fallback glyph metrics that are far
+        // narrower than a real browser's, so the token needs to be long enough to
+        // exceed the text column width under those metrics too.
+        const overlongToken = 'Microsoft.Extensions.DependencyInjection.Abstractions.Hosting'.repeat(10)
+        const doc = render({ title: overlongToken })
+        const titleText = [...doc.querySelectorAll('text')].find(el => el.textContent.includes('Microsoft'))
+        const titleTspans = [...titleText.querySelectorAll('tspan')]
+
+        expect(titleTspans.length).toBeGreaterThan(1)
+        expect(titleTspans.every(tspan => overlongToken.includes(tspan.textContent.replace(/\u2026$/, '')))).toBe(true)
+    })
+
     it('produces valid SVG markup', () => {
         const doc = render({ pill: 'Announcement', subtitle: 'What is new this month' })
 

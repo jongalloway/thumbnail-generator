@@ -31,12 +31,35 @@ export function wrapText(text, maxChars) {
         let currentLine = ''
 
         tokens.forEach(token => {
+            if (/^\s+$/.test(token)) {
+                currentLine += token
+                return
+            }
+
             const next = currentLine + token
-            if (/^\s+$/.test(token) || next.length <= maxChars) {
+            if (next.length <= maxChars) {
                 currentLine = next
-            } else {
-                if (currentLine.trim()) lines.push(currentLine.trimEnd())
-                currentLine = token.trimStart()
+                return
+            }
+
+            if (currentLine.trim()) lines.push(currentLine.trimEnd())
+            currentLine = ''
+
+            // A single token longer than the column itself (e.g. a long
+            // identifier or URL) must still be broken, or it would render as
+            // one overflowing line instead of wrapping.
+            if (token.length <= maxChars) {
+                currentLine = token
+                return
+            }
+
+            for (let i = 0; i < token.length; i += maxChars) {
+                const chunk = token.slice(i, i + maxChars)
+                if (i + maxChars < token.length) {
+                    lines.push(chunk)
+                } else {
+                    currentLine = chunk
+                }
             }
         })
 
@@ -63,18 +86,38 @@ export function wrapTextToWidth(text, maxWidth, ctx, font) {
         let current = ''
 
         for (const token of tokens) {
-            const next = current + token
             if (/^\s+$/.test(token)) {
-                current = next
+                current += token
                 continue
             }
+
+            const next = current + token
             if (ctx.measureText(next).width <= maxWidth) {
                 current = next
                 continue
             }
 
             if (current.trim()) lines.push(current.trimEnd())
-            current = token.trimStart()
+
+            if (ctx.measureText(token).width <= maxWidth) {
+                current = token
+                continue
+            }
+
+            // A single unbroken token wider than the column (e.g. a long
+            // identifier or URL) must still be split, or it would overflow
+            // past the clip boundary instead of wrapping.
+            let chunk = ''
+            for (const char of token) {
+                const nextChunk = chunk + char
+                if (chunk && ctx.measureText(nextChunk).width > maxWidth) {
+                    lines.push(chunk)
+                    chunk = char
+                } else {
+                    chunk = nextChunk
+                }
+            }
+            current = chunk
         }
 
         if (current.trim()) lines.push(current.trimEnd())

@@ -41,6 +41,28 @@ const PALETTE = {
 const SCRIM_OPACITY = { off: 0, subtle: 0.45, strong: 0.78 }
 
 /**
+ * Shorten a line that already fits `maxWidth` down to a version ending in an
+ * ellipsis, used when a block is truncated to a maximum line count. Falls
+ * back to a plain character trim when no measurement context is available
+ * (the line already fit without the ellipsis, so dropping one character
+ * keeps it within bounds).
+ */
+function truncateLineWithEllipsis(line, maxWidth, ctx) {
+    const ellipsis = '\u2026'
+    if (!line) return ellipsis
+
+    if (!ctx) {
+        return `${line.slice(0, -1).trimEnd()}${ellipsis}`
+    }
+
+    let truncated = line
+    while (truncated.length > 1 && ctx.measureText(`${truncated}${ellipsis}`).width > maxWidth) {
+        truncated = truncated.slice(0, -1)
+    }
+    return `${truncated.trimEnd()}${ellipsis}`
+}
+
+/**
  * Microsoft Developer Blog Template
  *
  * Featured images for https://developer.microsoft.com/blog/ — a title/subtitle
@@ -115,19 +137,35 @@ export function MicrosoftDeveloperBlogTemplate({
             : width * TEXT_RIGHT_RATIO
         const textMaxWidth = Math.max(0, textRightBoundary - titleX)
 
-        // Subtitle is bottom-anchored so the block grows upward.
+        // Subtitle is bottom-anchored so the block grows upward. Unbounded
+        // explicit line breaks (or very long text) could otherwise push the
+        // title's bottom limit above its own starting point, so the subtitle
+        // block itself is capped to a share of the available text band and
+        // any remainder is truncated with an ellipsis.
         const subtitleFontSize = 64 * scale
         const subtitleLineHeight = subtitleFontSize * 1.15
         const subtitleFont = `600 ${subtitleFontSize}px ${fontFamily}`
-        const subtitleLines = wrapTextToWidth(subtitle, textMaxWidth, textCtx, subtitleFont)
+        const textBandHeight = Math.max(0, (height - edgeMarginY) - titleY)
+        let subtitleLines = subtitle ? wrapTextToWidth(subtitle, textMaxWidth, textCtx, subtitleFont) : []
+        const maxSubtitleLines = subtitle
+            ? Math.max(1, Math.floor((textBandHeight * 0.4) / subtitleLineHeight) + 1)
+            : 0
+        if (subtitleLines.length > maxSubtitleLines) {
+            subtitleLines = subtitleLines.slice(0, maxSubtitleLines)
+            const lastIndex = subtitleLines.length - 1
+            subtitleLines[lastIndex] = truncateLineWithEllipsis(subtitleLines[lastIndex], textMaxWidth, textCtx)
+        }
         const subtitleBottomBaselineY = height - edgeMarginY
         const subtitleY = subtitleBottomBaselineY - Math.max(0, (subtitleLines.length - 1) * subtitleLineHeight)
 
-        // Auto-shrink the title until it clears the subtitle block.
+        // Auto-shrink the title until it clears the subtitle block. The
+        // bottom limit is clamped so it never rises above the title's own
+        // start, keeping the shrink loop well-defined even for an oversized
+        // subtitle block.
         const titleMaxFontSize = 126 * scale
         const titleMinFontSize = 64 * scale
         const titleBottomLimit = subtitle
-            ? subtitleY - subtitleFontSize - (28 * scale)
+            ? Math.max(titleY, subtitleY - subtitleFontSize - (28 * scale))
             : height - edgeMarginY
         let titleFontSize = titleMaxFontSize
         let titleLineHeight = titleFontSize * 1.1
@@ -143,6 +181,17 @@ export function MicrosoftDeveloperBlogTemplate({
             titleLineHeight = titleFontSize * 1.1
             titleFont = `700 ${titleFontSize}px ${fontFamily}`
             titleLines = wrapTextToWidth(title, textMaxWidth, textCtx, titleFont)
+        }
+
+        // Even at the minimum font size, an extreme number of explicit line
+        // breaks could still overflow into the subtitle. Cap the rendered
+        // line count to what fits and mark the cut with an ellipsis so the
+        // two blocks never overlap.
+        const maxTitleLines = Math.max(1, Math.floor((titleBottomLimit - titleY) / titleLineHeight) + 1)
+        if (titleLines.length > maxTitleLines) {
+            titleLines = titleLines.slice(0, maxTitleLines)
+            const lastIndex = titleLines.length - 1
+            titleLines[lastIndex] = truncateLineWithEllipsis(titleLines[lastIndex], textMaxWidth, textCtx)
         }
 
         // Artwork band (right third)
