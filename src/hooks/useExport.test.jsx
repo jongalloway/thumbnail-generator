@@ -27,6 +27,7 @@ describe('useExport', () => {
     beforeEach(() => {
         vi.clearAllMocks()
         anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+        vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test')
         pptxMocks.addSlide.mockReturnValue({ addImage: pptxMocks.addImage })
         pptxMocks.write.mockResolvedValue(new Blob(['pptx']))
     })
@@ -57,7 +58,7 @@ describe('useExport', () => {
             h: expect.closeTo(6.999825, 5),
         }))
         expect(pptxMocks.write).toHaveBeenCalledWith({ outputType: 'blob' })
-        expect(anchorClick.mock.instances[0].download).toBe('test-thumbnail.pptx')
+        expect(anchorClick.mock.contexts[0].download).toBe('test-thumbnail.pptx')
         expect(showToast).toHaveBeenCalledWith('PPTX exported successfully!')
     })
 })

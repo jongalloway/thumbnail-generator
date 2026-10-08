@@ -16,24 +16,24 @@
     "@resvg/resvg-js": "^2.6.2",
     "canvas": "^3.1.0",
     "pptxgenjs": "^4.0.1",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@testing-library/dom": "^10.4.1",
+    "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
-    "eslint": "^10.9.1",
+    "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.6",
+    "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.12.0",
-    "jsdom": "^30.0.1",
-    "vite": "^8.2.2",
-    "vitest": "^4.1.11"
+    "jsdom": "^30.1.1",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
   },
   "overrides": {
     "@babel/core": "^7.29.6"
