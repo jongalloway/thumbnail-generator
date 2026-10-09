@@ -86,6 +86,15 @@ function embedJpegMetadata(input, metadata) {
     if (input.length < 4 || input[0] !== 0xff || input[1] !== 0xd8) {
         throw new Error('Invalid JPEG data')
     }
+    let insertOffset = 2
+    while (input[insertOffset] === 0xff && input[insertOffset + 1] === 0xe0) {
+        const segmentLength = (input[insertOffset + 2] << 8) | input[insertOffset + 3]
+        if (segmentLength < 2 || insertOffset + segmentLength + 2 > input.length) {
+            throw new Error('Invalid JPEG APP0 segment')
+        }
+        insertOffset += segmentLength + 2
+    }
+
     const xml = encodeUtf8(createMetadataXml(metadata))
     const payload = concatBytes(JPEG_XMP_HEADER, xml)
     const segmentLength = payload.length + 2
@@ -96,7 +105,7 @@ function embedJpegMetadata(input, metadata) {
     const segment = new Uint8Array(payload.length + 4)
     segment.set([0xff, 0xe1, segmentLength >> 8, segmentLength & 0xff])
     segment.set(payload, 4)
-    return concatBytes(input.subarray(0, 2), segment, input.subarray(2))
+    return concatBytes(input.subarray(0, insertOffset), segment, input.subarray(insertOffset))
 }
 
 function makeWebpChunk(type, data) {

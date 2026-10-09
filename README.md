@@ -138,7 +138,7 @@ vite.config.js        # Vite configuration
 **Notes:**
 
 - Raster export inlines referenced images (backgrounds/logos) before rendering, so exported files consistently include all assets.
-- JPG, PNG, and WEBP exports include `thumbnail-generator` metadata and the querystring for the current serializable settings. The CLI's PNG output includes the same metadata; uploaded image data is not included.
+- JPG, PNG, and WEBP exports include `thumbnail-generator` metadata and the querystring for the current serializable settings. The CLI's PNG output includes the effective resolution and theme; custom logo file paths are omitted from its metadata to avoid exposing local paths. Uploaded image data is not included.
 - Backgrounds are stretched to fill the export resolution (no letterboxing).
 
 ## Layout Behavior

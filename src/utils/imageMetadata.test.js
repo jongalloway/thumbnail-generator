@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { Buffer } from 'node:buffer'
+import { createCanvas, loadImage } from 'canvas'
 import { addImageMetadata } from './imageMetadata'
 
 const metadata = { generator: 'thumbnail-generator', query: 'template=dotnet-blog&title=Hello' }
@@ -52,15 +54,23 @@ describe('addImageMetadata', () => {
     })
 
     it('adds an XMP APP1 segment to JPEG exports', async () => {
-        const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xd9])
+        const canvas = createCanvas(1, 1)
+        const jpeg = new Uint8Array(canvas.toBuffer('image/jpeg'))
+        expect(String.fromCharCode(...jpeg.subarray(6, 10))).toBe('JFIF')
+
         const result = new Uint8Array(await (await addImageMetadata(new Blob([jpeg], { type: 'image/jpeg' }), 'jpg', metadata)).arrayBuffer())
         const text = bytesToText(result)
+        const app0Length = (jpeg[4] << 8) | jpeg[5]
 
         expect(result[2]).toBe(0xff)
-        expect(result[3]).toBe(0xe1)
+        expect(result[3]).toBe(0xe0)
+        expect(result.subarray(2, 4 + app0Length)).toEqual(jpeg.subarray(2, 4 + app0Length))
+        expect(result[4 + app0Length]).toBe(0xff)
+        expect(result[5 + app0Length]).toBe(0xe1)
         expect(text).toContain('http://ns.adobe.com/xap/1.0/')
         expect(text).toContain('<xmp:CreatorTool>thumbnail-generator</xmp:CreatorTool>')
         expect(text).toContain('<tg:state>template=dotnet-blog&amp;title=Hello</tg:state>')
+        await expect(loadImage(Buffer.from(result))).resolves.toMatchObject({ width: 1, height: 1 })
     })
 
     it('converts a simple WebP to extended WebP and adds its XMP chunk', async () => {
