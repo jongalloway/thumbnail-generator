@@ -28,6 +28,7 @@ import { Resvg } from '@resvg/resvg-js'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { addImageMetadata } from '../src/utils/imageMetadata.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -463,7 +464,23 @@ async function main() {
         fs.writeFileSync(outputPath, svgString, 'utf-8')
     } else {
         const pngBuffer = renderToPng(svgString, width)
-        fs.writeFileSync(outputPath, pngBuffer)
+        const params = new URLSearchParams({
+            template: 'dotnet-blog',
+            format,
+            resolution,
+            variant,
+            title,
+        })
+        if (subtitle) params.set('subtitle', subtitle)
+        if (pill) params.set('pill', pill)
+        if (args.logos) params.set('logos', args.logos)
+        if (args.background) params.set('background', path.basename(args.background))
+        const taggedPng = await addImageMetadata(
+            new Blob([pngBuffer], { type: 'image/png' }),
+            'png',
+            { generator: 'thumbnail-generator', query: params.toString() }
+        )
+        fs.writeFileSync(outputPath, Buffer.from(await taggedPng.arrayBuffer()))
     }
 
     console.log(`Thumbnail saved to: ${outputPath}`)

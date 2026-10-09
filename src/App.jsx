@@ -18,7 +18,7 @@ import { useExport } from './hooks/useExport'
 import { loadPersistedSettings, persistSetting } from './hooks/usePersistedState'
 import { parseResolution } from './utils/svgUtils'
 import { STANDUP_NAME_BY_BACKGROUND, formatBackgroundLabel } from './utils/backgroundLabels'
-import { parseUrlState, buildShareUrl } from './utils/urlState'
+import { parseUrlState, buildShareParams, buildShareUrl } from './utils/urlState'
 
 // Auto-discover logos using Vite's import.meta.glob
 const logoModules = import.meta.glob('../public/logos/*.{svg,png,jpg,jpeg,gif,webp}', { eager: true, query: '?url', import: 'default' })
@@ -274,7 +274,20 @@ function App() {
   const generateSvg = useCallback(() => generateSvgRef.current(), [])
 
   // Export functionality
-  const { exportRaster, exportSvg, exportPptx, copyToClipboard } = useExport(generateSvg, resolution, showToast, fieldValues.title || fieldValues.topic)
+  const metadataQuery = buildShareParams({
+    templateId: selectedTemplateId,
+    backgroundId: selectedBackground?.isUploaded ? null : selectedBackground?.id,
+    resolution,
+    exportFormat,
+    fieldValues,
+  }).toString()
+  const { exportRaster, exportSvg, exportPptx, copyToClipboard } = useExport(
+    generateSvg,
+    resolution,
+    showToast,
+    fieldValues.title || fieldValues.topic,
+    metadataQuery
+  )
 
   const handleExportRaster = useCallback(() => {
     exportRaster(exportFormat)
