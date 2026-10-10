@@ -28,6 +28,7 @@ import { Resvg } from '@resvg/resvg-js'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { addImageMetadata } from '../src/utils/imageMetadata.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -174,6 +175,18 @@ function resolveLogos(logoStr) {
         console.error(`Logo not found: ${name}\nRun with --list-logos to see available options.`)
         process.exit(1)
     })
+}
+
+function getBundledLogoIds(logoStr) {
+    if (!logoStr) return []
+    return [...new Set(logoStr.split(',').map(name => name.trim()).filter(name => {
+        if (!name || path.isAbsolute(name) || name.includes(path.sep) || name.includes('/')) return false
+        return [
+            path.join(LOGOS_DIR, `${name}.svg`),
+            path.join(LOGOS_DIR, `${name}.png`),
+            path.join(LOGOS_DIR, name),
+        ].some(filePath => fs.existsSync(filePath))
+    }).map(name => path.parse(name).name))]
 }
 
 // ── SVG text utilities ────────────────────────────────────────────────────
@@ -428,10 +441,11 @@ async function main() {
     const title = args.title
     const subtitle = args.subtitle || ''
     const pill = args.pill || ''
-    const variant = args.variant || 'dark'
-    const resolution = args.resolution || '1920x1080'
+    const requestedVariant = args.variant || 'dark'
+    const variant = requestedVariant === 'dark' ? 'dark' : 'light'
+    const [width, height] = parseResolution(args.resolution || '1920x1080')
+    const resolution = `${width}x${height}`
     const format = (args.format || 'png').toLowerCase()
-    const [width] = parseResolution(resolution)
 
     if (!['png', 'svg'].includes(format)) {
         console.error(`Unsupported format: ${format}. Use png or svg.`)
@@ -463,7 +477,24 @@ async function main() {
         fs.writeFileSync(outputPath, svgString, 'utf-8')
     } else {
         const pngBuffer = renderToPng(svgString, width)
-        fs.writeFileSync(outputPath, pngBuffer)
+        const params = new URLSearchParams({
+            template: 'dotnet-blog',
+            format,
+            resolution,
+            variant,
+            title,
+        })
+        if (subtitle) params.set('subtitle', subtitle)
+        if (pill) params.set('pill', pill)
+        const bundledLogoIds = getBundledLogoIds(args.logos)
+        if (bundledLogoIds.length > 0) params.set('logos', bundledLogoIds.join(','))
+        if (args.background) params.set('background', path.basename(args.background))
+        const taggedPng = await addImageMetadata(
+            new Blob([pngBuffer], { type: 'image/png' }),
+            'png',
+            { generator: 'thumbnail-generator', query: params.toString() }
+        )
+        fs.writeFileSync(outputPath, Buffer.from(await taggedPng.arrayBuffer()))
     }
 
     console.log(`Thumbnail saved to: ${outputPath}`)

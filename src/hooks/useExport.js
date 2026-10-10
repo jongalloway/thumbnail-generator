@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { blobToDataUrl, parseResolution, inlineSvgImages, flattenNestedSvgImages } from '../utils/svgUtils'
+import { addImageMetadata } from '../utils/imageMetadata'
 
 const PPTX_SLIDE_WIDTH = 13.333
 
@@ -18,7 +19,7 @@ function toKebabCase(title) {
 /**
  * Hook for exporting thumbnails as raster images, SVG, or PowerPoint
  */
-export function useExport(generateSvg, resolution, showToast, title) {
+export function useExport(generateSvg, resolution, showToast, title, metadataQuery = '') {
     // Export as raster (JPG/PNG/WEBP)
     const exportRaster = useCallback(async (format = 'jpg') => {
         const [width, height] = parseResolution(resolution)
@@ -61,26 +62,29 @@ export function useExport(generateSvg, resolution, showToast, title) {
 
             ctx.drawImage(img, 0, 0, width, height)
 
-            canvas.toBlob((blob) => {
-                URL.revokeObjectURL(url)
+            const blob = await new Promise((resolve) => canvas.toBlob(resolve, mimeType, quality))
+            URL.revokeObjectURL(url)
+            if (!blob) {
+                showToast('Export failed. Try SVG export instead.', 'error')
+                return
+            }
 
-                if (!blob) {
-                    showToast('Export failed. Try SVG export instead.', 'error')
-                    return
-                }
-                const downloadUrl = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = downloadUrl
-                a.download = `${toKebabCase(title)}.${extension}`
-                a.click()
-                URL.revokeObjectURL(downloadUrl)
-                showToast(`${extension.toUpperCase()} exported successfully!`)
-            }, mimeType, quality)
+            const taggedBlob = await addImageMetadata(blob, fmt, {
+                generator: 'thumbnail-generator',
+                query: metadataQuery,
+            }, { width, height })
+            const downloadUrl = URL.createObjectURL(taggedBlob)
+            const a = document.createElement('a')
+            a.href = downloadUrl
+            a.download = `${toKebabCase(title)}.${extension}`
+            a.click()
+            URL.revokeObjectURL(downloadUrl)
+            showToast(`${extension.toUpperCase()} exported successfully!`)
         } catch (err) {
             console.error('Export failed:', err)
             showToast('Export failed. Try SVG export instead.', 'error')
         }
-    }, [resolution, generateSvg, showToast, title])
+    }, [resolution, generateSvg, showToast, title, metadataQuery])
 
     // Export as SVG with embedded bitmap assets so it remains self-contained.
     const exportSvg = useCallback(async () => {
