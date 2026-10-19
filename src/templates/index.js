@@ -284,6 +284,42 @@ export const TEMPLATES = {
             speakerNames: '',
         },
     },
+    'azure-developers-on-demand': {
+        id: 'azure-developers-on-demand',
+        name: 'Azure Developers On-Demand',
+        description: 'On-demand video thumbnails with one speaker',
+        usesFixedBackground: true,
+        fields: [
+            {
+                id: 'topic',
+                type: FIELD_TYPES.TEXTAREA,
+                label: 'Video Title',
+                placeholder: 'e.g., SRE Agent Canvas',
+                maxLength: 100,
+                required: true,
+                allowLineBreaks: true,
+                rows: 3,
+            },
+            {
+                id: 'speakerName',
+                type: FIELD_TYPES.TEXT,
+                label: 'Speaker Name',
+                placeholder: 'e.g., Paul Yuknewicz',
+                maxLength: 60,
+            },
+            {
+                id: 'speakerPhoto',
+                type: FIELD_TYPES.IMAGE,
+                label: 'Speaker Photo',
+                helperText: 'Upload one speaker photo; it will be cropped into a circle.',
+            },
+        ],
+        defaultValues: {
+            topic: '',
+            speakerName: '',
+            speakerPhoto: null,
+        },
+    },
     'on-dotnet-live': {
         id: 'on-dotnet-live',
         name: 'On .NET Live',
