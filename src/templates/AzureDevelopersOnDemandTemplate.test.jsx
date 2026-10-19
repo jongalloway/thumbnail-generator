@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AzureDevelopersOnDemandTemplate } from './AzureDevelopersOnDemandTemplate'
 
 describe('AzureDevelopersOnDemandTemplate', () => {
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
     it('renders a single circular speaker photo over the selected background', () => {
         const { result } = renderHook(() => AzureDevelopersOnDemandTemplate({
             values: {
@@ -48,11 +52,17 @@ describe('AzureDevelopersOnDemandTemplate', () => {
         expect([...document.querySelectorAll('text')].map(text => text.textContent).join(' ')).toContain('SRE Agent Canvas')
     })
 
-    it('escapes user-provided text and respects a different export resolution', () => {
+    it.each([10, 120, null])('escapes user-provided text and respects a different export resolution (character width: %j)', characterWidth => {
+        vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+            characterWidth === null ? null : {
+                measureText: text => ({ width: text.length * characterWidth }),
+            }
+        )
+        const topic = '<b>&</b>'
         const { result } = renderHook(() => AzureDevelopersOnDemandTemplate({
             values: {
-                topic: '<b>New & useful</b>',
-                speakerName: 'Jon',
+                topic,
+                speakerName: 'Jon & <team>',
             },
             selectedBackground: { url: '/on-demand-background.jpg' },
             resolution: '1200x630',
@@ -65,6 +75,11 @@ describe('AzureDevelopersOnDemandTemplate', () => {
         expect(document.querySelector('svg')?.getAttribute('width')).toBe('1200')
         expect(document.querySelector('svg')?.getAttribute('height')).toBe('630')
         expect(document.querySelector('svg')?.getAttribute('preserveAspectRatio')).toBe('none')
-        expect([...document.querySelectorAll('text')].map(text => text.textContent).join(' ')).toContain('<b>New & useful</b>')
+        const textElements = [...document.querySelectorAll('text')]
+        const titleElements = textElements.slice(0, -1)
+        expect(titleElements).toHaveLength(characterWidth === 120 ? 2 : 1)
+        expect(titleElements.map(text => text.textContent).join('')).toBe(topic)
+        expect(textElements.at(-1)?.textContent).toBe('with Jon & <team>')
+        expect(document.querySelector('b, team')).toBeNull()
     })
 })
