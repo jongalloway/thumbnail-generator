@@ -8,6 +8,7 @@ import { MicrosoftDeveloperBlogTemplate } from './templates/MicrosoftDeveloperBl
 import { CommunityStandupTemplate } from './templates/CommunityStandupTemplate'
 import { OnDotNetLiveTemplate } from './templates/OnDotNetLiveTemplate'
 import { AzureDevelopersLiveTemplate } from './templates/AzureDevelopersLiveTemplate'
+import { AzureDevelopersOnDemandTemplate } from './templates/AzureDevelopersOnDemandTemplate'
 
 // Components
 import { BackgroundField, TemplateSelector, ImageArrayField, ImageField, LogoArrayField } from './components'
@@ -118,6 +119,7 @@ const templateComponents = {
   'dotnet-community-standup': CommunityStandupTemplate,
   'on-dotnet-live': OnDotNetLiveTemplate,
   'azure-developers-live': AzureDevelopersLiveTemplate,
+  'azure-developers-on-demand': AzureDevelopersOnDemandTemplate,
 }
 
 /**

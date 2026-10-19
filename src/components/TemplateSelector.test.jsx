@@ -15,5 +15,6 @@ describe('TemplateSelector', () => {
         expect(select).toHaveValue('dotnet-community-standup')
         expect(screen.getByRole('option', { name: /community standup/i })).toBeInTheDocument()
         expect(screen.getByRole('option', { name: 'Azure Developers Live' })).toBeInTheDocument()
+        expect(screen.getByRole('option', { name: 'Azure Developers On-Demand' })).toBeInTheDocument()
     })
 })

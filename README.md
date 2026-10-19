@@ -67,6 +67,10 @@ Featured images for [developer.microsoft.com/blog](https://developer.microsoft.c
 
 These thumbnails intentionally carry no Microsoft logo.
 
+### Azure Developers On-Demand
+
+On-demand video thumbnails use the supplied Azure Developers background, a large video title, and one optional circular speaker photo. Enter the speaker name to add the “with” caption, and upload a headshot to fill the photo circle. Without a photo, no placeholder circle is shown, leaving the background unobstructed. The background is a 1365 × 768 JPG and is included in the SVG composition, so the finished thumbnail remains exportable as SVG without converting the gradient artwork.
+
 ## Adding New Backgrounds
 
 To add a new background, add an image (SVG, PNG, JPG/JPEG, GIF, or WEBP) to `public/backgrounds/`. The app automatically discovers all images in this directory - no manifest or code changes required!
