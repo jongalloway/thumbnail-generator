@@ -45,12 +45,12 @@ export function AzureDevelopersOnDemandTemplate({ values, selectedBackground, re
                 : '<rect width="1920" height="1080" fill="#b622bf"/>'}
             <defs>
                 <clipPath id="speaker-photo-clip">
-                    <circle cx="1545" cy="760" r="455"/>
+                    <circle cx="1586" cy="760" r="500"/>
                 </clipPath>
             </defs>
             ${speakerPhotoUrl
-                ? `<circle cx="1545" cy="760" r="455" fill="#352b46"/>
-                   <image href="${escapeXml(speakerPhotoUrl)}" x="1090" y="305" width="910" height="910" preserveAspectRatio="xMidYMid slice" clip-path="url(#speaker-photo-clip)"/>`
+                ? `<circle cx="1586" cy="760" r="500" fill="#352b46"/>
+                   <image href="${escapeXml(speakerPhotoUrl)}" x="1086" y="260" width="1000" height="1000" preserveAspectRatio="xMidYMid slice" clip-path="url(#speaker-photo-clip)"/>`
                 : ''}
             ${titleText}
             <text x="80" y="1000" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="${speakerFontSize}" font-weight="700">${escapeXml(speakerName ? `with ${speakerName}` : '')}</text>
