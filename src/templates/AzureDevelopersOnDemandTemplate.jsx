@@ -50,7 +50,7 @@ export function AzureDevelopersOnDemandTemplate({ values, selectedBackground, re
             </defs>
             ${speakerPhotoUrl
                 ? `<circle cx="1586" cy="760" r="500" fill="#352b46"/>
-                   <image href="${escapeXml(speakerPhotoUrl)}" x="1086" y="260" width="1000" height="1000" preserveAspectRatio="xMidYMid slice" clip-path="url(#speaker-photo-clip)"/>`
+                   <image href="${escapeXml(speakerPhotoUrl)}" x="1086" y="160" width="1000" height="1000" preserveAspectRatio="xMidYMid slice" clip-path="url(#speaker-photo-clip)"/>`
                 : ''}
             ${titleText}
             <text x="80" y="1000" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="${speakerFontSize}" font-weight="700">${escapeXml(speakerName ? `with ${speakerName}` : '')}</text>

@@ -26,6 +26,10 @@ describe('AzureDevelopersOnDemandTemplate', () => {
 
         expect(background).not.toBeNull()
         expect(photo?.getAttribute('clip-path')).toBe('url(#speaker-photo-clip)')
+        expect(photo?.getAttribute('x')).toBe('1086')
+        expect(photo?.getAttribute('y')).toBe('160')
+        expect(photo?.getAttribute('width')).toBe('1000')
+        expect(photo?.getAttribute('height')).toBe('1000')
         expect(document.querySelector('svg > circle')?.getAttribute('fill')).toBe('#352b46')
         const photoClip = document.querySelector('#speaker-photo-clip circle')
         expect(photoClip).not.toBeNull()
