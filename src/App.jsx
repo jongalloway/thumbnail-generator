@@ -11,7 +11,7 @@ import { AzureDevelopersLiveTemplate } from './templates/AzureDevelopersLiveTemp
 import { AzureDevelopersOnDemandTemplate } from './templates/AzureDevelopersOnDemandTemplate'
 
 // Components
-import { BackgroundField, TemplateSelector, ImageArrayField, ImageField, LogoArrayField } from './components'
+import { BackgroundField, TemplateSelector, ImageArrayField, ImageField, LogoArrayField, ThemeSelector } from './components'
 
 // Hooks
 import { useToast } from './hooks/useToast'
@@ -634,6 +634,7 @@ function App() {
             <span className="github-label">GitHub</span>
           </a>
         </p>
+        <ThemeSelector />
       </footer>
 
       {/* Toast Notification */}
