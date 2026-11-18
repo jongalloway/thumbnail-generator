@@ -13,6 +13,7 @@ A static, client-side thumbnail generator for blog posts. Create consistent blog
 - 💾 Export as JPG (default), PNG, WEBP, or SVG
 - 📱 Multiple resolution options (default: 1920×1080)
 - ♿ Accessible UI with keyboard navigation
+- Light and dark editor themes with a saved preference
 - 🚀 Runs entirely in the browser - no server required
 
 ## Getting Started
@@ -46,6 +47,12 @@ Template selections and editable fields can be supplied as query parameters. URL
 ```
 
 Use `field.<id>` instead of `<id>` when preferred. Supported shared settings are `template`/`templateId`, `background`/`backgroundId`, `resolution`, and `format`/`exportFormat`. Upload fields such as images and logos cannot be populated from a URL.
+
+### Editor appearance
+
+Use the compact theme control in the footer to choose **System Theme** (monitor), **Light** (sun), or **Dark** (moon). **System Theme** is the default and follows changes to your system color preference. Your selection is remembered in this browser. Hover for labels, or use Tab and the arrow keys to select a theme.
+
+The editor theme does not change thumbnail backgrounds, text variants, or exported images.
 
 ### Deploy to GitHub Pages
 

@@ -4,16 +4,20 @@
 
 /* CSS Variables for theming */
 :root {
+  color-scheme: light;
   --color-bg: #f5f5f5;
   --color-surface: #ffffff;
   --color-text: #333333;
   --color-text-muted: #666666;
   --color-primary: #0066cc;
   --color-primary-hover: #0052a3;
+  --color-on-primary: #ffffff;
   --color-secondary: #555555;
   --color-secondary-hover: #444444;
   --color-border: #dddddd;
   --color-focus: #0066cc;
+  --color-focus-ring: rgba(0, 102, 204, 0.3);
+  --color-selected: rgba(0, 102, 204, 0.1);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
   --radius-sm: 4px;
@@ -29,6 +33,25 @@
   font-weight: 400;
   color: var(--color-text);
   background-color: var(--color-bg);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #111827;
+  --color-surface: #1f2937;
+  --color-text: #f3f4f6;
+  --color-text-muted: #b6c2d2;
+  --color-primary: #93c5fd;
+  --color-primary-hover: #bfdbfe;
+  --color-on-primary: #111827;
+  --color-secondary: #4b5563;
+  --color-secondary-hover: #596579;
+  --color-border: #6b7280;
+  --color-focus: #93c5fd;
+  --color-focus-ring: rgba(147, 197, 253, 0.45);
+  --color-selected: rgba(147, 197, 253, 0.18);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
 }
 
 /* Reset and Base Styles */
@@ -73,7 +96,7 @@ body {
   bottom: var(--spacing-lg);
   right: var(--spacing-lg);
   padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--color-text);
+  background: var(--color-secondary);
   color: white;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-md);

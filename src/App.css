@@ -175,7 +175,7 @@ select:focus,
 textarea:focus {
   outline: none;
   border-color: var(--color-focus);
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 input[type="text"]::placeholder,
@@ -215,18 +215,20 @@ textarea::placeholder {
 .logo-option:focus {
   outline: none;
   border-color: var(--color-focus);
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .logo-option.selected {
   border-color: var(--color-primary);
-  background: rgba(0, 102, 204, 0.1);
+  background: var(--color-selected);
 }
 
 .logo-option img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  background: white;
+  border-radius: 2px;
 }
 
 .logo-tooltip {
@@ -370,6 +372,7 @@ textarea::placeholder {
 .upload-button {
   padding: var(--spacing-xs) var(--spacing-sm);
   background: var(--color-bg);
+  color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
@@ -402,7 +405,7 @@ textarea::placeholder {
 
 .btn:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.3);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .btn:active {
@@ -411,7 +414,7 @@ textarea::placeholder {
 
 .btn-primary {
   background: var(--color-primary);
-  color: white;
+  color: var(--color-on-primary);
 }
 
 .btn-primary:hover {
@@ -567,6 +570,42 @@ textarea::placeholder {
 
 .footer a:hover {
   text-decoration: underline;
+}
+
+.theme-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.theme-option {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.theme-option:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.theme-option:has(input:checked) {
+  background: var(--color-selected);
+  color: var(--color-primary);
+}
+
+.theme-option:has(input:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 
